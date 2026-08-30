@@ -1,0 +1,1072 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<title>难题有解 · 用教员的思想，指导当下的难题</title>
+<style>
+/* 楷体 web 字体（子集化，保证安卓手机也能显示楷体文字） */
+@font-face{
+  font-family:"QKai";
+  src:url("https://zenith0097.github.io/nantiyoujie/fonts/kaiti-subset.woff2") format("woff2");
+  font-weight:400;font-style:normal;font-display:swap;
+}
+:root{
+  --bg:#f6f1e4; --ink:#2b2720; --ink-soft:#91897b; --line:#e4dcc8;
+  --seal:#c8443a; --seal-deep:#a8322e; --seal-soft:rgba(200,68,58,.08);
+  --card-w:560px;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{
+  font-family:"PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+  color:var(--ink);background:var(--bg);overflow:hidden;
+  /* 宣纸淡噪点 */
+  background-image:radial-gradient(rgba(43,39,32,.028) 1px, transparent 1px);
+  background-size:22px 22px;
+}
+#app{height:100%;display:flex;align-items:center;justify-content:center;padding:14px}
+.screen{
+  display:flex;flex-direction:column;align-items:center;justify-content:safe center;
+  width:100%;max-width:var(--card-w);height:100%;gap:12px;
+  animation:rise .45s ease both;overflow-y:auto;padding:10px 6px;
+}
+.screen.hidden{display:none!important}
+@keyframes rise{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+
+/* ===== 品牌 ===== */
+.brand{display:flex;flex-direction:column;align-items:center;gap:10px}
+.brand-name{font-size:24px;font-weight:600;letter-spacing:16px;margin-right:-16px}
+.brand-name .dot{color:var(--seal)}
+.brand-line{width:30px;height:2px;background:var(--seal);border-radius:1px}
+.brand-hook{font-size:15px;color:var(--seal-deep);letter-spacing:3px;text-indent:3px;font-weight:600}
+.brand-sub{font-size:12px;color:var(--ink-soft);letter-spacing:1.5px;line-height:1.6;text-align:center;margin-top:2px}
+
+/* ===== 金句筒（翻开的书：左右页 + 右页绕书脊翻页）===== */
+.book-wrap{position:relative;width:150px;height:150px;display:flex;align-items:flex-end;justify-content:center;margin:2px 0}
+.book{position:relative;width:132px;height:118px;perspective:800px}
+.bk-spine{position:absolute;left:50%;top:5%;height:90%;width:2px;margin-left:-1px;background:#cbbfa4;z-index:0}
+.bk-left{position:absolute;left:0;top:0;width:50%;height:100%;z-index:1}
+.bk-left svg{width:100%;height:100%}
+.bk-right{position:absolute;left:50%;top:0;width:50%;height:100%;transform-origin:left center;
+  backface-visibility:hidden;box-shadow:-2px 0 4px rgba(43,39,32,.08)}
+.bk-right svg{width:100%;height:100%}
+.bk-right.r1{z-index:4}
+.bk-right.r2{z-index:3}
+.bk-right.r3{z-index:2}
+.book.flip .bk-right{animation:pageTurn .5s ease-in forwards}
+.book.flip .r1{animation-delay:0s}
+.book.flip .r2{animation-delay:.2s}
+.book.flip .r3{animation-delay:.4s}
+@keyframes pageTurn{
+  0%{transform:translateX(0) scaleX(1);opacity:1}
+  55%{transform:translateX(-30%) scaleX(.42);opacity:.95}
+  100%{transform:translateX(-52%) scaleX(.06);opacity:0}
+}
+
+/* ===== 输入区 ===== */
+.hint{font-size:13px;color:var(--ink-soft);letter-spacing:1px;text-align:center;margin-bottom:2px}
+.ask-box{display:flex;flex-direction:column;align-items:center;gap:8px}
+.qinput{
+  font-family:inherit;font-size:15px;color:var(--ink);text-align:center;
+  background:#fff;border:1.5px solid var(--line);border-radius:10px;
+  padding:11px 16px;width:min(76vw,300px);outline:none;
+  transition:border-color .2s,box-shadow .2s;
+}
+.qinput:focus{border-color:var(--seal);box-shadow:0 0 0 3px rgba(200,68,58,.08)}
+.qinput::placeholder{color:#c6bdaa}
+/* 预制问题（不会写？点一个直接摇）——主流程下方的次级入口，轻量处理 */
+.preset{width:100%;max-width:330px;display:flex;flex-direction:column;align-items:center;gap:8px;margin-top:20px}
+.preset-hint{font-size:11px;color:#b5a68a;letter-spacing:1px;display:flex;align-items:center;gap:10px}
+.preset-refresh{
+  font-family:inherit;font-size:11px;color:var(--seal-deep);letter-spacing:1px;
+  background:none;border:1px solid rgba(200,68,58,.4);border-radius:999px;padding:3px 12px;cursor:pointer;
+  transition:background .15s,color .15s;
+}
+.preset-refresh:hover{background:var(--seal-soft);color:var(--seal-deep)}
+.preset-refresh:active{transform:translateY(1px)}
+.preset-chips{display:flex;flex-wrap:wrap;justify-content:center;gap:7px}
+.chip{
+  font-family:inherit;font-size:12px;color:var(--ink-soft);letter-spacing:.5px;
+  background:transparent;border:1px solid #e3dccb;border-radius:999px;padding:5px 13px;cursor:pointer;
+  transition:border-color .15s,color .15s,background .15s;
+}
+.chip:hover{border-color:var(--seal);color:var(--seal-deep);background:#fff}
+.chip:active{background:var(--seal-soft)}
+
+/* 合作联系：页脚式小功能 */
+.entry-row{display:flex;align-items:center;justify-content:center;gap:2px;margin-top:auto;padding-top:10px;opacity:.6;flex-wrap:nowrap}
+.entry-sep{font-size:9px;color:#d8d0bc;flex:none}
+.copyright{font-size:10px;color:#b5a68a;letter-spacing:1px;text-align:center;margin-top:6px;opacity:.8;flex:0 0 auto}
+.coop-entry{
+  font-family:inherit;font-size:10px;color:var(--ink-soft);letter-spacing:.3px;white-space:nowrap;
+  background:none;border:none;padding:5px 3px;cursor:pointer;transition:color .15s;flex:0 0 auto;
+}
+.coop-entry:hover{color:var(--seal-deep);opacity:1}
+/* 分享页面板内更紧凑 */
+.share-panel .entry-row .coop-entry{padding:4px 2px;font-size:9.5px}
+
+/* ===== 合作联系页 ===== */
+#s-cooperate{padding:0 28px}
+.coop-top{display:flex;align-items:center;gap:14px;padding:18px 0 4px}
+.coop-back{font-family:inherit;font-size:13px;color:var(--ink-soft);background:none;border:none;padding:6px 0;cursor:pointer}
+.coop-back:hover{color:var(--seal-deep)}
+.coop-title{font-size:15px;font-weight:600;letter-spacing:4px;color:var(--ink)}
+.coop-body{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px}
+.coop-qr{
+  width:min(62vw,260px);height:min(62vw,260px);
+  background:#fff;border:1.5px solid var(--line);border-radius:14px;
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 8px 24px rgba(43,39,32,.08);
+}
+.coop-qr img{width:82%;height:82%;object-fit:contain}
+.coop-qr.empty::after{content:"合作二维码待添加";font-size:12px;color:#c6bdaa;letter-spacing:1px}
+.coop-qr img[src=""]{display:none}
+.coop-hint{font-size:13px;color:var(--ink);letter-spacing:2px;text-indent:2px}
+.coop-mail{font-size:21px;font-weight:700;color:var(--seal-deep);letter-spacing:1px;user-select:all;margin:0}
+.coop-sub{font-size:11px;color:#b5a68a;letter-spacing:1px}
+.btn-main{
+  font-family:inherit;font-size:18px;font-weight:600;letter-spacing:6px;text-indent:6px;
+  background:var(--seal);color:#fff;border:none;border-radius:12px;
+  padding:15px 54px;cursor:pointer;
+  box-shadow:0 6px 18px rgba(200,68,58,.22);
+  transition:transform .12s,box-shadow .12s;
+}
+.btn-main:hover{transform:translateY(-1px)}
+.btn-main:active{transform:translateY(1px)}
+.btn-main:disabled{opacity:.5;cursor:default}
+.btn-ghost{
+  font-family:inherit;font-size:14px;letter-spacing:2px;color:var(--ink-soft);
+  background:none;border:none;padding:8px 12px;cursor:pointer;
+}
+.btn-ghost:hover{color:var(--seal-deep)}
+.book-link{position:fixed;top:14px;right:18px;z-index:10;
+  font-size:12px;color:var(--ink-soft);letter-spacing:1px;
+  background:#fff;border:1px solid var(--line);border-radius:999px;padding:6px 14px;cursor:pointer;
+  box-shadow:0 2px 8px rgba(43,39,32,.05);
+}
+.book-link:hover{color:var(--seal-deep);border-color:var(--seal)}
+
+/* ===== 金句屏（浅色宣纸，一句话一屏） ===== */
+#s-answer{background:transparent}
+/* 封面/金句页共用：教员人像水印背景（内容浮在上层） */
+.wm-bg{position:relative}
+.wm-bg::before{
+  content:"";position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  width:84%;max-width:440px;aspect-ratio:800/1029;pointer-events:none;z-index:0;
+  background:url("https://zenith0097.github.io/nantiyoujie/images/maestro-wm.webp") center/contain no-repeat;
+  opacity:1;
+}
+.wm-bg>*{position:relative;z-index:1}
+/* 收藏按钮保持固定在右上角（不受水印层规则影响） */
+.wm-bg .book-link{position:fixed;top:14px;right:18px;z-index:12}
+#s-answer>.answer-inner{position:relative;z-index:1}
+.answer-inner{
+  width:100%;height:100%;display:flex;flex-direction:column;align-items:center;
+  justify-content:space-between;padding:40px 26px 30px;position:relative;
+  overflow-y:auto;overscroll-behavior:contain;
+  animation:rise .5s ease both;
+  transform-origin:left center;
+}
+.answer-inner.book-open{animation:bookOpen .78s cubic-bezier(.22,.85,.3,1) both}
+@keyframes bookOpen{
+  0%{transform:perspective(1100px) rotateY(-78deg) translateX(-38px);opacity:.12}
+  60%{transform:perspective(1100px) rotateY(9deg) translateX(0);opacity:1}
+  100%{transform:perspective(1100px) rotateY(0deg)}
+}
+.answer-inner>*{position:relative;flex-shrink:0}
+/* 背景水印"句"字（填补短句空白，弱存在感） */
+.answer-inner::before{
+  content:"句";position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  font-family:"QKai","Kaiti SC","STKaiti","KaiTi","Noto Serif SC","Noto Serif CJK SC","Songti SC","SimSun",serif;font-weight:700;
+  font-size:340px;line-height:1;color:rgba(43,39,32,.035);pointer-events:none;
+}
+@media (max-width:767px){.answer-inner::before{font-size:260px}}
+.answer-inner>*{position:relative}
+.answer-top{display:flex;flex-direction:column;align-items:center;gap:10px}
+.answer-level{
+  font-size:13px;letter-spacing:5px;text-indent:5px;color:var(--seal-deep);
+  border:1px solid rgba(200,68,58,.55);border-radius:4px;padding:4px 12px;
+  background:rgba(200,68,58,.04);
+  animation:stamp .45s .1s cubic-bezier(.2,1.4,.4,1) both;
+}
+@keyframes stamp{0%{transform:scale(2.1) rotate(-14deg);opacity:0}60%{transform:scale(.94)}100%{transform:scale(1)}}
+.answer-echo{font-size:13px;color:var(--seal-deep);letter-spacing:1px;animation:rise .4s .18s ease both}
+.answer-echo .tag{background:var(--seal-soft);border-radius:4px;padding:1px 8px;margin-right:4px}
+.answer-quote{
+  font-family:"QKai","Kaiti SC","STKaiti","KaiTi","Noto Serif SC","Noto Serif CJK SC","Songti SC","SimSun",serif;
+  font-size:39px;line-height:1.85;letter-spacing:3px;font-weight:700;
+  color:var(--ink);text-align:center;max-width:560px;
+  animation:rise .6s .22s ease both;
+}
+@media (max-width:767px){.answer-quote{font-size:32px}}
+.answer-source{font-size:13px;color:var(--ink-soft);letter-spacing:2px;animation:rise .5s .3s ease both}
+/* 次层 */
+.answer-more{
+  width:100%;max-width:440px;display:none;flex-direction:column;align-items:center;gap:14px;
+  padding-top:20px;border-top:1px solid var(--line);animation:rise .4s ease both;
+}
+.answer-more.open{display:flex}
+.more-toggle{
+  font-family:inherit;font-size:14px;letter-spacing:2px;
+  color:var(--ink);background:#fff;border:1px solid var(--line);
+  border-radius:12px;padding:11px 22px;cursor:pointer;
+  display:flex;align-items:center;gap:10px;
+  box-shadow:0 2px 10px rgba(43,39,32,.05);
+  transition:border-color .15s,box-shadow .15s,transform .1s;
+}
+.more-toggle:hover{border-color:var(--seal);box-shadow:0 4px 14px rgba(200,68,58,.12)}
+.more-toggle:active{transform:scale(.98)}
+.more-toggle .mt-icon{
+  font-family:"QKai","Kaiti SC","STKaiti","KaiTi","Noto Serif SC","Noto Serif CJK SC","Songti SC","SimSun",serif;
+  font-size:12px;color:#fff;background:var(--seal);border-radius:4px;
+  padding:2px 6px;letter-spacing:1px;
+}
+.more-toggle .mt-arrow{color:var(--ink-soft);font-size:12px;transition:transform .25s}
+.more-toggle.open .mt-arrow{transform:rotate(180deg)}
+.more-trans{font-size:15px;line-height:1.9;color:var(--ink);text-align:center;padding:2px 6px}
+.yiji{display:flex;gap:30px;align-items:flex-start}
+.yj-item{display:flex;flex-direction:column;align-items:center;gap:8px}
+.yj-item .c{font-size:13px;line-height:1.45;max-width:96px;text-align:center;letter-spacing:1px;color:var(--ink)}
+.seal-round{width:78px;height:78px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;flex:none}
+.seal-round .t{font-family:"QKai","Kaiti SC","STKaiti","KaiTi","Noto Serif SC","Noto Serif CJK SC","Songti SC","SimSun",serif;font-size:15px;font-weight:700;line-height:1;white-space:nowrap;letter-spacing:0}
+.seal-round.yi{background:var(--seal);color:#fff;transform:rotate(-4deg);box-shadow:0 3px 10px rgba(200,68,58,.25)}
+.seal-round.ji{background:#fff;color:var(--seal-deep);border:2px solid var(--seal);transform:rotate(3deg)}
+.answer-actions{display:flex;flex-direction:column;align-items:center;gap:10px;width:100%;max-width:360px;padding-top:6px}
+.answer-actions .btn-again{
+  font-family:inherit;font-size:16px;font-weight:600;letter-spacing:4px;text-indent:4px;
+  background:var(--seal);color:#fff;border:none;border-radius:12px;
+  width:100%;padding:14px 0;cursor:pointer;box-shadow:0 6px 18px rgba(200,68,58,.22);
+}
+.answer-actions .btn-again:active{transform:translateY(1px)}
+.answer-actions .row{display:flex;gap:10px;width:100%}
+.answer-actions .row button{
+  flex:1;font-family:inherit;font-size:14px;letter-spacing:2px;
+  color:var(--ink);background:#fff;border:1px solid var(--line);
+  border-radius:10px;padding:11px 0;cursor:pointer;transition:border-color .15s;
+}
+.answer-actions .row button:hover{border-color:var(--seal);color:var(--seal-deep)}
+.answer-actions .row button:active{background:var(--seal-soft)}
+.answer-actions .row button:disabled,.share-panel .row button:disabled{
+  color:#bbb;border-color:#e5e0d6;background:#f7f4ee;cursor:default;
+}
+
+/* ===== 分享 ===== */
+#s-share{gap:8px;justify-content:flex-start;padding-top:4px}
+#s-share .screen-hd{font-size:12px;color:var(--ink-soft);letter-spacing:3px;flex:none}
+.share-img{width:auto;height:min(52vh,500px);aspect-ratio:9/16;border-radius:12px;flex:none;
+  box-shadow:0 18px 50px rgba(43,39,32,.16);background:#fff}
+.save-tip{font-size:11px;color:#b5a68a;letter-spacing:1px}
+.share-core{font-size:12px;color:var(--seal-deep);letter-spacing:2px;font-weight:600;margin:0 0 4px}
+.share-panel{
+  display:flex;flex-direction:column;gap:8px;width:100%;max-width:340px;flex:none;
+  background:#fff;border:1px solid var(--line);border-radius:16px;
+  padding:12px 14px 8px;box-shadow:0 10px 28px rgba(43,39,32,.07);
+}
+.share-panel .btn-dl{
+  font-family:inherit;font-size:16px;font-weight:600;letter-spacing:4px;text-indent:4px;
+  background:var(--seal);color:#fff;border:none;border-radius:12px;
+  width:100%;height:44px;display:flex;align-items:center;justify-content:center;cursor:pointer;
+  box-shadow:0 6px 16px rgba(200,68,58,.22);
+}
+.share-panel .btn-dl:active{transform:translateY(1px)}
+.share-panel .row{display:flex;gap:10px;width:100%}
+.share-panel .row button{
+  flex:1;font-family:inherit;font-size:14px;letter-spacing:2px;
+  color:var(--ink);background:#fff;border:1px solid var(--line);
+  border-radius:12px;height:42px;display:flex;align-items:center;justify-content:center;cursor:pointer;
+  transition:border-color .15s,color .15s;
+}
+.share-panel .row button:active{background:var(--seal-soft)}
+.share-panel .btn-again{
+  font-family:inherit;font-size:15px;font-weight:500;letter-spacing:3px;text-indent:3px;
+  color:var(--seal-deep);background:#fff;border:1px solid var(--seal);border-radius:12px;
+  width:100%;height:42px;display:flex;align-items:center;justify-content:center;cursor:pointer;
+  transition:background .15s;
+}
+.share-panel .btn-again:active{background:var(--seal-soft)}
+.share-panel .entry-row{margin-top:0;padding-top:6px}
+/* 矮屏：卡片更小，保证一屏装下不溢出 */
+@media (max-height:740px){
+  #s-share{gap:6px}
+  .share-img{height:min(44vh,400px)}
+  .share-panel{gap:6px;padding:10px 14px 6px}
+  .share-panel .btn-dl{height:40px}
+  .share-panel .row button,.share-panel .btn-again{height:38px}
+}
+
+/* ===== 收藏 ===== */
+.panel{position:fixed;inset:0;background:rgba(43,39,32,.45);backdrop-filter:blur(3px);
+  display:flex;align-items:center;justify-content:center;z-index:20;padding:20px}
+.panel.hidden{display:none}
+.panel-box{background:var(--bg);border-radius:16px;max-width:420px;width:100%;max-height:76vh;
+  padding:24px;display:flex;flex-direction:column;gap:10px;overflow-y:auto;
+  box-shadow:0 20px 60px rgba(43,39,32,.25)}
+.panel-box h3{font-size:18px;letter-spacing:4px;text-align:center;margin-bottom:4px}
+.book-item{background:#fff;border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:15px;line-height:1.5;
+  display:flex;justify-content:space-between;gap:8px;align-items:flex-start;
+  font-family:"QKai","Kaiti SC","STKaiti","KaiTi","Noto Serif SC","Noto Serif CJK SC","Songti SC","SimSun",serif}
+.book-item .q{flex:1}
+.book-item .src{font-size:11px;color:var(--ink-soft);display:block;margin-top:3px}
+.book-item .del{background:none;border:none;color:var(--seal-deep);font-size:16px;cursor:pointer;font-family:inherit}
+.panel-empty{text-align:center;color:var(--ink-soft);font-size:14px;padding:24px 0}
+/* 反馈 */
+.tip-msg{font-size:12px;color:var(--ink-soft);letter-spacing:.5px;line-height:1.6}
+.tip-msg b{color:var(--seal-deep)}
+.tip-in{font-family:inherit;font-size:14px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:#fff;width:100%;box-sizing:border-box;color:var(--ink)}
+.tip-ta{font-family:inherit;font-size:14px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:#fff;width:100%;box-sizing:border-box;color:var(--ink);resize:none;line-height:1.5}
+.tip-sub{font-family:inherit;font-size:15px;font-weight:600;letter-spacing:2px;background:var(--seal);color:#fff;border:none;border-radius:12px;height:44px;cursor:pointer}
+.tip-sub:active{transform:translateY(1px)}
+.tip-sub:disabled{background:#c9b8ad;cursor:default}
+.toast{position:fixed;left:50%;bottom:56px;transform:translateX(-50%) translateY(10px);
+  background:rgba(43,39,32,.92);color:#f6f1e4;font-size:13px;letter-spacing:1px;
+  padding:10px 22px;border-radius:999px;opacity:0;pointer-events:none;transition:all .3s;z-index:30}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* 桌面 */
+@media (min-width:768px){
+  body{background-color:#efe8d6}
+  .answer-quote{font-size:44px}
+  .share-img{height:min(52vh,540px)}
+}
+</style>
+</head>
+<body>
+<main id="app">
+
+  <!-- 屏1 问事 -->
+  <section id="s-home" class="screen wm-bg">
+    <button class="book-link" id="btnBook">我的收藏</button>
+    <header class="brand">
+      <div class="brand-name">难题有解<span class="dot">。</span></div>
+      <div class="brand-line"></div>
+      <div class="brand-hook">用教员的思想，指导当下的难题</div>
+    </header>
+
+    <div class="book-wrap">
+      <div class="book" id="book">
+        <!-- 书脊线 -->
+        <span class="bk-spine" aria-hidden="true"></span>
+        <!-- 左页（固定） -->
+        <div class="bk-left" aria-hidden="true">
+          <svg viewBox="0 0 70 120">
+            <path d="M70 22 Q54 12 30 16 L30 96 Q54 92 70 102 Z" fill="#f6efdd" stroke="#b5a68a" stroke-width="2.5" stroke-linejoin="round"/>
+            <line x1="38" y1="40" x2="61" y2="35" stroke="#c9bda2" stroke-width="2" stroke-linecap="round"/>
+            <line x1="38" y1="52" x2="61" y2="47" stroke="#c9bda2" stroke-width="2" stroke-linecap="round"/>
+            <line x1="38" y1="64" x2="61" y2="59" stroke="#c9bda2" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <!-- 右页 ×3（翻页时依次绕书脊翻过，翻的就是这本书的页） -->
+        <div class="bk-right r1" aria-hidden="true">
+          <svg viewBox="0 0 70 120">
+            <path d="M0 22 Q16 12 40 16 L40 96 Q16 92 0 102 Z" fill="#f6efdd" stroke="#b5a68a" stroke-width="2.5" stroke-linejoin="round"/>
+            <line x1="9" y1="40" x2="32" y2="35" stroke="#c9bda2" stroke-width="2" stroke-linecap="round"/>
+            <line x1="9" y1="52" x2="32" y2="47" stroke="#c9bda2" stroke-width="2" stroke-linecap="round"/>
+            <line x1="9" y1="64" x2="32" y2="59" stroke="#c9bda2" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="bk-right r2" aria-hidden="true">
+          <svg viewBox="0 0 70 120">
+            <path d="M0 22 Q16 12 40 16 L40 96 Q16 92 0 102 Z" fill="#f6efdd" stroke="#b5a68a" stroke-width="2.5" stroke-linejoin="round"/>
+            <line x1="9" y1="40" x2="32" y2="35" stroke="#c9bda2" stroke-width="2" stroke-linecap="round"/>
+            <line x1="9" y1="52" x2="32" y2="47" stroke="#c9bda2" stroke-width="2" stroke-linecap="round"/>
+            <line x1="9" y1="64" x2="32" y2="59" stroke="#c9bda2" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="bk-right r3" aria-hidden="true">
+          <svg viewBox="0 0 70 120">
+            <path d="M0 22 Q16 12 40 16 L40 96 Q16 92 0 102 Z" fill="#f6efdd" stroke="#b5a68a" stroke-width="2.5" stroke-linejoin="round"/>
+            <line x1="9" y1="40" x2="32" y2="35" stroke="#c9bda2" stroke-width="2" stroke-linecap="round"/>
+            <line x1="9" y1="52" x2="32" y2="47" stroke="#c9bda2" stroke-width="2" stroke-linecap="round"/>
+            <line x1="9" y1="64" x2="32" y2="59" stroke="#c9bda2" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <div class="ask-box" id="askBox">
+      <p class="hint">心里想一个难题，试试金句匹配</p>
+      <input class="qinput" id="qInput" maxlength="30" placeholder="想求什么？比如：这份工作该不该辞" autocomplete="off">
+    </div>
+
+    <button class="btn-main" id="btnShake">金 句 匹 配</button>
+
+    <div class="preset">
+      <div class="preset-hint"><span>不会写？点一个直接摇</span><button class="preset-refresh" id="btnRefresh">换一批 ↻</button></div>
+      <div class="preset-chips" id="presetChips">
+        <button class="chip" data-q="这份工作该不该辞">这份工作该不该辞</button>
+        <button class="chip" data-q="面试能不能过">面试能不能过</button>
+        <button class="chip" data-q="最近太难了想放弃">最近太难了想放弃</button>
+        <button class="chip" data-q="一直拖延动不起来">一直拖延动不起来</button>
+        <button class="chip" data-q="不知道以后该干嘛">不知道以后该干嘛</button>
+        <button class="chip" data-q="现在买房合适吗">现在买房合适吗</button>
+      </div>
+    </div>
+
+    <div class="entry-row">
+      <button class="coop-entry" id="btnCoop">合作联系</button>
+      <span class="entry-sep">·</span>
+      <button class="coop-entry" id="btnFb">意见反馈</button>
+      <span class="entry-sep">·</span>
+      <button class="coop-entry" id="btnWish">许愿池</button>
+      <span class="entry-sep">·</span>
+      <button class="coop-entry" id="btnTip">打赏支持</button>
+    </div>
+
+    <div class="copyright">© Zenith AI 研学社</div>
+  </section>
+
+  <!-- 屏2 金句（浅色宣纸，一句话一屏） -->
+  <section id="s-answer" class="screen wm-bg hidden">
+    <div class="answer-inner" id="answerInner">
+      <div class="answer-top">
+        <span class="answer-level" id="aLevel"></span>
+        <span class="answer-echo hidden" id="aEcho"></span>
+      </div>
+      <h1 class="answer-quote" id="aQuote"></h1>
+      <button class="more-toggle" id="moreToggle"><span class="mt-icon">解读</span><span id="mtLabel">白话与解读</span><span class="mt-arrow">▾</span></button>
+      <div class="answer-more" id="answerMore">
+        <p class="more-trans" id="aTrans"></p>
+        <div class="yiji">
+          <div class="yj-item">
+            <div class="seal-round yi"><span class="t">该做的</span></div>
+            <span class="c" id="aYi"></span>
+          </div>
+          <div class="yj-item">
+            <div class="seal-round ji"><span class="t">先别急的</span></div>
+            <span class="c" id="aJi"></span>
+          </div>
+        </div>
+      </div>
+      <div class="answer-actions">
+        <button class="btn-again" id="btnAgain">再配一句</button>
+        <div class="row">
+          <button id="btnShare">生成金句卡</button>
+          <button id="btnSave">收藏此句</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 屏3 分享 -->
+  <section id="s-share" class="screen wm-bg hidden">
+    <span class="screen-hd">你的金句卡</span>
+    <img class="share-img" id="shareImg" alt="金句卡">
+    <p class="save-tip" id="saveTip"></p>
+    <p class="share-core">用教员的思想，指导当下的难题</p>
+    <div class="share-panel">
+      <button class="btn-dl" id="btnDownload">保存金句卡</button>
+      <div class="row">
+        <button id="btnCopy">复制金句</button>
+        <button id="btnSave2">收藏此句</button>
+      </div>
+      <button class="btn-again" id="btnAgain2">再配一句</button>
+      <div class="entry-row">
+        <button class="coop-entry" id="btnCoopS">合作联系</button>
+        <span class="entry-sep">·</span>
+        <button class="coop-entry" id="btnFbS">意见反馈</button>
+        <span class="entry-sep">·</span>
+        <button class="coop-entry" id="btnWishS">许愿池</button>
+        <span class="entry-sep">·</span>
+        <button class="coop-entry" id="btnTipS">打赏支持</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 屏4 合作联系 -->
+  <section id="s-cooperate" class="screen hidden">
+    <div class="coop-top">
+      <button class="coop-back" id="btnCoopBack">‹ 返回</button>
+      <span class="coop-title">合作联系</span>
+    </div>
+    <div class="coop-body">
+      <div class="coop-qr" id="coopQr">
+        <img id="coopImg" alt="合作二维码">
+      </div>
+      <p class="coop-hint" id="coopHint">👇 长按识别二维码，添加合作微信</p>
+      <p class="coop-mail">zenith0097@163.com</p>
+      <p class="coop-sub">Zenith AI 研学社 · 难题有解</p>
+    </div>
+  </section>
+
+  <!-- 屏5 打赏支持 -->
+  <section id="s-tip" class="screen hidden">
+    <div class="coop-top">
+      <button class="coop-back" id="btnTipBack">‹ 返回</button>
+      <span class="coop-title">打赏支持</span>
+    </div>
+    <div class="coop-body">
+      <div class="coop-qr" id="tipQr">
+        <img id="tipImg" alt="收款二维码">
+      </div>
+      <p class="coop-hint" id="tipHint">👇 长按识别收款码，直接付款</p>
+      <p class="coop-sub">Zenith AI 研学社 · 难题有解</p>
+    </div>
+  </section>
+
+  <!-- 收藏 -->
+  <div class="panel hidden" id="bookPanel">
+    <div class="panel-box">
+      <h3>我的收藏</h3>
+      <div id="bookList"></div>
+      <button class="btn-ghost" id="btnBookClose" style="align-self:center">关闭</button>
+    </div>
+  </div>
+</main>
+<div class="toast" id="toast"></div>
+
+<script>
+/**
+ * Minified by jsDelivr using Terser v5.37.0.
+ * Original file: /npm/qrcode-generator@1.4.4/qrcode.js
+ *
+ * Do NOT use SRI with dynamically generated files! More information: https://www.jsdelivr.com/using-sri-with-dynamic-files
+ */
+var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],f={},c=function(t,r){o=function(t){for(var r=new Array(t),e=0;e<t;e+=1){r[e]=new Array(t);for(var n=0;n<t;n+=1)r[e][n]=null}return r}(i=4*e+17),l(0,0),l(i-7,0),l(0,i-7),s(),h(),d(t,r),e>=7&&v(t),null==a&&(a=p(e,n,u)),w(a,r)},l=function(t,r){for(var e=-1;e<=7;e+=1)if(!(t+e<=-1||i<=t+e))for(var n=-1;n<=7;n+=1)r+n<=-1||i<=r+n||(o[t+e][r+n]=0<=e&&e<=6&&(0==n||6==n)||0<=n&&n<=6&&(0==e||6==e)||2<=e&&e<=4&&2<=n&&n<=4)},h=function(){for(var t=8;t<i-8;t+=1)null==o[t][6]&&(o[t][6]=t%2==0);for(var r=8;r<i-8;r+=1)null==o[6][r]&&(o[6][r]=r%2==0)},s=function(){for(var t=B.getPatternPosition(e),r=0;r<t.length;r+=1)for(var n=0;n<t.length;n+=1){var i=t[r],a=t[n];if(null==o[i][a])for(var u=-2;u<=2;u+=1)for(var f=-2;f<=2;f+=1)o[i+u][a+f]=-2==u||2==u||-2==f||2==f||0==u&&0==f}},v=function(t){for(var r=B.getBCHTypeNumber(e),n=0;n<18;n+=1){var a=!t&&1==(r>>n&1);o[Math.floor(n/3)][n%3+i-8-3]=a}for(n=0;n<18;n+=1){a=!t&&1==(r>>n&1);o[n%3+i-8-3][Math.floor(n/3)]=a}},d=function(t,r){for(var e=n<<3|r,a=B.getBCHTypeInfo(e),u=0;u<15;u+=1){var f=!t&&1==(a>>u&1);u<6?o[u][8]=f:u<8?o[u+1][8]=f:o[i-15+u][8]=f}for(u=0;u<15;u+=1){f=!t&&1==(a>>u&1);u<8?o[8][i-u-1]=f:u<9?o[8][15-u-1+1]=f:o[8][15-u-1]=f}o[i-8][8]=!t},w=function(t,r){for(var e=-1,n=i-1,a=7,u=0,f=B.getMaskFunction(r),c=i-1;c>0;c-=2)for(6==c&&(c-=1);;){for(var g=0;g<2;g+=1)if(null==o[n][c-g]){var l=!1;u<t.length&&(l=1==(t[u]>>>a&1)),f(n,c-g)&&(l=!l),o[n][c-g]=l,-1==(a-=1)&&(u+=1,a=7)}if((n+=e)<0||i<=n){n-=e,e=-e;break}}},p=function(t,r,e){for(var n=A.getRSBlocks(t,r),o=b(),i=0;i<e.length;i+=1){var a=e[i];o.put(a.getMode(),4),o.put(a.getLength(),B.getLengthInBits(a.getMode(),t)),a.write(o)}var u=0;for(i=0;i<n.length;i+=1)u+=n[i].dataCount;if(o.getLengthInBits()>8*u)throw"code length overflow. ("+o.getLengthInBits()+">"+8*u+")";for(o.getLengthInBits()+4<=8*u&&o.put(0,4);o.getLengthInBits()%8!=0;)o.putBit(!1);for(;!(o.getLengthInBits()>=8*u||(o.put(236,8),o.getLengthInBits()>=8*u));)o.put(17,8);return function(t,r){for(var e=0,n=0,o=0,i=new Array(r.length),a=new Array(r.length),u=0;u<r.length;u+=1){var f=r[u].dataCount,c=r[u].totalCount-f;n=Math.max(n,f),o=Math.max(o,c),i[u]=new Array(f);for(var g=0;g<i[u].length;g+=1)i[u][g]=255&t.getBuffer()[g+e];e+=f;var l=B.getErrorCorrectPolynomial(c),h=k(i[u],l.getLength()-1).mod(l);for(a[u]=new Array(l.getLength()-1),g=0;g<a[u].length;g+=1){var s=g+h.getLength()-a[u].length;a[u][g]=s>=0?h.getAt(s):0}}var v=0;for(g=0;g<r.length;g+=1)v+=r[g].totalCount;var d=new Array(v),w=0;for(g=0;g<n;g+=1)for(u=0;u<r.length;u+=1)g<i[u].length&&(d[w]=i[u][g],w+=1);for(g=0;g<o;g+=1)for(u=0;u<r.length;u+=1)g<a[u].length&&(d[w]=a[u][g],w+=1);return d}(o,n)};f.addData=function(t,r){var e=null;switch(r=r||"Byte"){case"Numeric":e=M(t);break;case"Alphanumeric":e=x(t);break;case"Byte":e=m(t);break;case"Kanji":e=L(t);break;default:throw"mode:"+r}u.push(e),a=null},f.isDark=function(t,r){if(t<0||i<=t||r<0||i<=r)throw t+","+r;return o[t][r]},f.getModuleCount=function(){return i},f.make=function(){if(e<1){for(var t=1;t<40;t++){for(var r=A.getRSBlocks(t,n),o=b(),i=0;i<u.length;i++){var a=u[i];o.put(a.getMode(),4),o.put(a.getLength(),B.getLengthInBits(a.getMode(),t)),a.write(o)}var g=0;for(i=0;i<r.length;i++)g+=r[i].dataCount;if(o.getLengthInBits()<=8*g)break}e=t}c(!1,function(){for(var t=0,r=0,e=0;e<8;e+=1){c(!0,e);var n=B.getLostPoint(f);(0==e||t>n)&&(t=n,r=e)}return r}())},f.createTableTag=function(t,r){t=t||2;var e="";e+='<table style="',e+=" border-width: 0px; border-style: none;",e+=" border-collapse: collapse;",e+=" padding: 0px; margin: "+(r=void 0===r?4*t:r)+"px;",e+='">',e+="<tbody>";for(var n=0;n<f.getModuleCount();n+=1){e+="<tr>";for(var o=0;o<f.getModuleCount();o+=1)e+='<td style="',e+=" border-width: 0px; border-style: none;",e+=" border-collapse: collapse;",e+=" padding: 0px; margin: 0px;",e+=" width: "+t+"px;",e+=" height: "+t+"px;",e+=" background-color: ",e+=f.isDark(n,o)?"#000000":"#ffffff",e+=";",e+='"/>';e+="</tr>"}return e+="</tbody>",e+="</table>"},f.createSvgTag=function(t,r,e,n){var o={};"object"==typeof arguments[0]&&(t=(o=arguments[0]).cellSize,r=o.margin,e=o.alt,n=o.title),t=t||2,r=void 0===r?4*t:r,(e="string"==typeof e?{text:e}:e||{}).text=e.text||null,e.id=e.text?e.id||"qrcode-description":null,(n="string"==typeof n?{text:n}:n||{}).text=n.text||null,n.id=n.text?n.id||"qrcode-title":null;var i,a,u,c,g=f.getModuleCount()*t+2*r,l="";for(c="l"+t+",0 0,"+t+" -"+t+",0 0,-"+t+"z ",l+='<svg version="1.1" xmlns="http://www.w3.org/2000/svg"',l+=o.scalable?"":' width="'+g+'px" height="'+g+'px"',l+=' viewBox="0 0 '+g+" "+g+'" ',l+=' preserveAspectRatio="xMinYMin meet"',l+=n.text||e.text?' role="img" aria-labelledby="'+y([n.id,e.id].join(" ").trim())+'"':"",l+=">",l+=n.text?'<title id="'+y(n.id)+'">'+y(n.text)+"</title>":"",l+=e.text?'<description id="'+y(e.id)+'">'+y(e.text)+"</description>":"",l+='<rect width="100%" height="100%" fill="white" cx="0" cy="0"/>',l+='<path d="',a=0;a<f.getModuleCount();a+=1)for(u=a*t+r,i=0;i<f.getModuleCount();i+=1)f.isDark(a,i)&&(l+="M"+(i*t+r)+","+u+c);return l+='" stroke="transparent" fill="black"/>',l+="</svg>"},f.createDataURL=function(t,r){t=t||2,r=void 0===r?4*t:r;var e=f.getModuleCount()*t+2*r,n=r,o=e-r;return I(e,e,(function(r,e){if(n<=r&&r<o&&n<=e&&e<o){var i=Math.floor((r-n)/t),a=Math.floor((e-n)/t);return f.isDark(a,i)?0:1}return 1}))},f.createImgTag=function(t,r,e){t=t||2,r=void 0===r?4*t:r;var n=f.getModuleCount()*t+2*r,o="";return o+="<img",o+=' src="',o+=f.createDataURL(t,r),o+='"',o+=' width="',o+=n,o+='"',o+=' height="',o+=n,o+='"',e&&(o+=' alt="',o+=y(e),o+='"'),o+="/>"};var y=function(t){for(var r="",e=0;e<t.length;e+=1){var n=t.charAt(e);switch(n){case"<":r+="&lt;";break;case">":r+="&gt;";break;case"&":r+="&amp;";break;case'"':r+="&quot;";break;default:r+=n}}return r};return f.createASCII=function(t,r){if((t=t||1)<2)return function(t){t=void 0===t?2:t;var r,e,n,o,i,a=1*f.getModuleCount()+2*t,u=t,c=a-t,g={"██":"█","█ ":"▀"," █":"▄","  ":" "},l={"██":"▀","█ ":"▀"," █":" ","  ":" "},h="";for(r=0;r<a;r+=2){for(n=Math.floor((r-u)/1),o=Math.floor((r+1-u)/1),e=0;e<a;e+=1)i="█",u<=e&&e<c&&u<=r&&r<c&&f.isDark(n,Math.floor((e-u)/1))&&(i=" "),u<=e&&e<c&&u<=r+1&&r+1<c&&f.isDark(o,Math.floor((e-u)/1))?i+=" ":i+="█",h+=t<1&&r+1>=c?l[i]:g[i];h+="\n"}return a%2&&t>0?h.substring(0,h.length-a-1)+Array(a+1).join("▀"):h.substring(0,h.length-1)}(r);t-=1,r=void 0===r?2*t:r;var e,n,o,i,a=f.getModuleCount()*t+2*r,u=r,c=a-r,g=Array(t+1).join("██"),l=Array(t+1).join("  "),h="",s="";for(e=0;e<a;e+=1){for(o=Math.floor((e-u)/t),s="",n=0;n<a;n+=1)i=1,u<=n&&n<c&&u<=e&&e<c&&f.isDark(o,Math.floor((n-u)/t))&&(i=0),s+=i?g:l;for(o=0;o<t;o+=1)h+=s+"\n"}return h.substring(0,h.length-1)},f.renderTo2dContext=function(t,r){r=r||2;for(var e=f.getModuleCount(),n=0;n<e;n++)for(var o=0;o<e;o++)t.fillStyle=f.isDark(n,o)?"black":"white",t.fillRect(n*r,o*r,r,r)},f};t.stringToBytes=(t.stringToBytesFuncs={default:function(t){for(var r=[],e=0;e<t.length;e+=1){var n=t.charCodeAt(e);r.push(255&n)}return r}}).default,t.createStringToBytes=function(t,r){var e=function(){for(var e=S(t),n=function(){var t=e.read();if(-1==t)throw"eof";return t},o=0,i={};;){var a=e.read();if(-1==a)break;var u=n(),f=n()<<8|n();i[String.fromCharCode(a<<8|u)]=f,o+=1}if(o!=r)throw o+" != "+r;return i}(),n="?".charCodeAt(0);return function(t){for(var r=[],o=0;o<t.length;o+=1){var i=t.charCodeAt(o);if(i<128)r.push(i);else{var a=e[t.charAt(o)];"number"==typeof a?(255&a)==a?r.push(a):(r.push(a>>>8),r.push(255&a)):r.push(n)}}return r}};var r,e,n,o,i,a=1,u=2,f=4,c=8,g={L:1,M:0,Q:3,H:2},l=0,h=1,s=2,v=3,d=4,w=5,p=6,y=7,B=(r=[[],[6,18],[6,22],[6,26],[6,30],[6,34],[6,22,38],[6,24,42],[6,26,46],[6,28,50],[6,30,54],[6,32,58],[6,34,62],[6,26,46,66],[6,26,48,70],[6,26,50,74],[6,30,54,78],[6,30,56,82],[6,30,58,86],[6,34,62,90],[6,28,50,72,94],[6,26,50,74,98],[6,30,54,78,102],[6,28,54,80,106],[6,32,58,84,110],[6,30,58,86,114],[6,34,62,90,118],[6,26,50,74,98,122],[6,30,54,78,102,126],[6,26,52,78,104,130],[6,30,56,82,108,134],[6,34,60,86,112,138],[6,30,58,86,114,142],[6,34,62,90,118,146],[6,30,54,78,102,126,150],[6,24,50,76,102,128,154],[6,28,54,80,106,132,158],[6,32,58,84,110,136,162],[6,26,54,82,110,138,166],[6,30,58,86,114,142,170]],e=1335,n=7973,i=function(t){for(var r=0;0!=t;)r+=1,t>>>=1;return r},(o={}).getBCHTypeInfo=function(t){for(var r=t<<10;i(r)-i(e)>=0;)r^=e<<i(r)-i(e);return 21522^(t<<10|r)},o.getBCHTypeNumber=function(t){for(var r=t<<12;i(r)-i(n)>=0;)r^=n<<i(r)-i(n);return t<<12|r},o.getPatternPosition=function(t){return r[t-1]},o.getMaskFunction=function(t){switch(t){case l:return function(t,r){return(t+r)%2==0};case h:return function(t,r){return t%2==0};case s:return function(t,r){return r%3==0};case v:return function(t,r){return(t+r)%3==0};case d:return function(t,r){return(Math.floor(t/2)+Math.floor(r/3))%2==0};case w:return function(t,r){return t*r%2+t*r%3==0};case p:return function(t,r){return(t*r%2+t*r%3)%2==0};case y:return function(t,r){return(t*r%3+(t+r)%2)%2==0};default:throw"bad maskPattern:"+t}},o.getErrorCorrectPolynomial=function(t){for(var r=k([1],0),e=0;e<t;e+=1)r=r.multiply(k([1,C.gexp(e)],0));return r},o.getLengthInBits=function(t,r){if(1<=r&&r<10)switch(t){case a:return 10;case u:return 9;case f:case c:return 8;default:throw"mode:"+t}else if(r<27)switch(t){case a:return 12;case u:return 11;case f:return 16;case c:return 10;default:throw"mode:"+t}else{if(!(r<41))throw"type:"+r;switch(t){case a:return 14;case u:return 13;case f:return 16;case c:return 12;default:throw"mode:"+t}}},o.getLostPoint=function(t){for(var r=t.getModuleCount(),e=0,n=0;n<r;n+=1)for(var o=0;o<r;o+=1){for(var i=0,a=t.isDark(n,o),u=-1;u<=1;u+=1)if(!(n+u<0||r<=n+u))for(var f=-1;f<=1;f+=1)o+f<0||r<=o+f||0==u&&0==f||a==t.isDark(n+u,o+f)&&(i+=1);i>5&&(e+=3+i-5)}for(n=0;n<r-1;n+=1)for(o=0;o<r-1;o+=1){var c=0;t.isDark(n,o)&&(c+=1),t.isDark(n+1,o)&&(c+=1),t.isDark(n,o+1)&&(c+=1),t.isDark(n+1,o+1)&&(c+=1),0!=c&&4!=c||(e+=3)}for(n=0;n<r;n+=1)for(o=0;o<r-6;o+=1)t.isDark(n,o)&&!t.isDark(n,o+1)&&t.isDark(n,o+2)&&t.isDark(n,o+3)&&t.isDark(n,o+4)&&!t.isDark(n,o+5)&&t.isDark(n,o+6)&&(e+=40);for(o=0;o<r;o+=1)for(n=0;n<r-6;n+=1)t.isDark(n,o)&&!t.isDark(n+1,o)&&t.isDark(n+2,o)&&t.isDark(n+3,o)&&t.isDark(n+4,o)&&!t.isDark(n+5,o)&&t.isDark(n+6,o)&&(e+=40);var g=0;for(o=0;o<r;o+=1)for(n=0;n<r;n+=1)t.isDark(n,o)&&(g+=1);return e+=Math.abs(100*g/r/r-50)/5*10},o),C=function(){for(var t=new Array(256),r=new Array(256),e=0;e<8;e+=1)t[e]=1<<e;for(e=8;e<256;e+=1)t[e]=t[e-4]^t[e-5]^t[e-6]^t[e-8];for(e=0;e<255;e+=1)r[t[e]]=e;var n={glog:function(t){if(t<1)throw"glog("+t+")";return r[t]},gexp:function(r){for(;r<0;)r+=255;for(;r>=256;)r-=255;return t[r]}};return n}();function k(t,r){if(void 0===t.length)throw t.length+"/"+r;var e=function(){for(var e=0;e<t.length&&0==t[e];)e+=1;for(var n=new Array(t.length-e+r),o=0;o<t.length-e;o+=1)n[o]=t[o+e];return n}(),n={getAt:function(t){return e[t]},getLength:function(){return e.length},multiply:function(t){for(var r=new Array(n.getLength()+t.getLength()-1),e=0;e<n.getLength();e+=1)for(var o=0;o<t.getLength();o+=1)r[e+o]^=C.gexp(C.glog(n.getAt(e))+C.glog(t.getAt(o)));return k(r,0)},mod:function(t){if(n.getLength()-t.getLength()<0)return n;for(var r=C.glog(n.getAt(0))-C.glog(t.getAt(0)),e=new Array(n.getLength()),o=0;o<n.getLength();o+=1)e[o]=n.getAt(o);for(o=0;o<t.getLength();o+=1)e[o]^=C.gexp(C.glog(t.getAt(o))+r);return k(e,0).mod(t)}};return n}var A=function(){var t=[[1,26,19],[1,26,16],[1,26,13],[1,26,9],[1,44,34],[1,44,28],[1,44,22],[1,44,16],[1,70,55],[1,70,44],[2,35,17],[2,35,13],[1,100,80],[2,50,32],[2,50,24],[4,25,9],[1,134,108],[2,67,43],[2,33,15,2,34,16],[2,33,11,2,34,12],[2,86,68],[4,43,27],[4,43,19],[4,43,15],[2,98,78],[4,49,31],[2,32,14,4,33,15],[4,39,13,1,40,14],[2,121,97],[2,60,38,2,61,39],[4,40,18,2,41,19],[4,40,14,2,41,15],[2,146,116],[3,58,36,2,59,37],[4,36,16,4,37,17],[4,36,12,4,37,13],[2,86,68,2,87,69],[4,69,43,1,70,44],[6,43,19,2,44,20],[6,43,15,2,44,16],[4,101,81],[1,80,50,4,81,51],[4,50,22,4,51,23],[3,36,12,8,37,13],[2,116,92,2,117,93],[6,58,36,2,59,37],[4,46,20,6,47,21],[7,42,14,4,43,15],[4,133,107],[8,59,37,1,60,38],[8,44,20,4,45,21],[12,33,11,4,34,12],[3,145,115,1,146,116],[4,64,40,5,65,41],[11,36,16,5,37,17],[11,36,12,5,37,13],[5,109,87,1,110,88],[5,65,41,5,66,42],[5,54,24,7,55,25],[11,36,12,7,37,13],[5,122,98,1,123,99],[7,73,45,3,74,46],[15,43,19,2,44,20],[3,45,15,13,46,16],[1,135,107,5,136,108],[10,74,46,1,75,47],[1,50,22,15,51,23],[2,42,14,17,43,15],[5,150,120,1,151,121],[9,69,43,4,70,44],[17,50,22,1,51,23],[2,42,14,19,43,15],[3,141,113,4,142,114],[3,70,44,11,71,45],[17,47,21,4,48,22],[9,39,13,16,40,14],[3,135,107,5,136,108],[3,67,41,13,68,42],[15,54,24,5,55,25],[15,43,15,10,44,16],[4,144,116,4,145,117],[17,68,42],[17,50,22,6,51,23],[19,46,16,6,47,17],[2,139,111,7,140,112],[17,74,46],[7,54,24,16,55,25],[34,37,13],[4,151,121,5,152,122],[4,75,47,14,76,48],[11,54,24,14,55,25],[16,45,15,14,46,16],[6,147,117,4,148,118],[6,73,45,14,74,46],[11,54,24,16,55,25],[30,46,16,2,47,17],[8,132,106,4,133,107],[8,75,47,13,76,48],[7,54,24,22,55,25],[22,45,15,13,46,16],[10,142,114,2,143,115],[19,74,46,4,75,47],[28,50,22,6,51,23],[33,46,16,4,47,17],[8,152,122,4,153,123],[22,73,45,3,74,46],[8,53,23,26,54,24],[12,45,15,28,46,16],[3,147,117,10,148,118],[3,73,45,23,74,46],[4,54,24,31,55,25],[11,45,15,31,46,16],[7,146,116,7,147,117],[21,73,45,7,74,46],[1,53,23,37,54,24],[19,45,15,26,46,16],[5,145,115,10,146,116],[19,75,47,10,76,48],[15,54,24,25,55,25],[23,45,15,25,46,16],[13,145,115,3,146,116],[2,74,46,29,75,47],[42,54,24,1,55,25],[23,45,15,28,46,16],[17,145,115],[10,74,46,23,75,47],[10,54,24,35,55,25],[19,45,15,35,46,16],[17,145,115,1,146,116],[14,74,46,21,75,47],[29,54,24,19,55,25],[11,45,15,46,46,16],[13,145,115,6,146,116],[14,74,46,23,75,47],[44,54,24,7,55,25],[59,46,16,1,47,17],[12,151,121,7,152,122],[12,75,47,26,76,48],[39,54,24,14,55,25],[22,45,15,41,46,16],[6,151,121,14,152,122],[6,75,47,34,76,48],[46,54,24,10,55,25],[2,45,15,64,46,16],[17,152,122,4,153,123],[29,74,46,14,75,47],[49,54,24,10,55,25],[24,45,15,46,46,16],[4,152,122,18,153,123],[13,74,46,32,75,47],[48,54,24,14,55,25],[42,45,15,32,46,16],[20,147,117,4,148,118],[40,75,47,7,76,48],[43,54,24,22,55,25],[10,45,15,67,46,16],[19,148,118,6,149,119],[18,75,47,31,76,48],[34,54,24,34,55,25],[20,45,15,61,46,16]],r=function(t,r){var e={};return e.totalCount=t,e.dataCount=r,e},e={};return e.getRSBlocks=function(e,n){var o=function(r,e){switch(e){case g.L:return t[4*(r-1)+0];case g.M:return t[4*(r-1)+1];case g.Q:return t[4*(r-1)+2];case g.H:return t[4*(r-1)+3];default:return}}(e,n);if(void 0===o)throw"bad rs block @ typeNumber:"+e+"/errorCorrectionLevel:"+n;for(var i=o.length/3,a=[],u=0;u<i;u+=1)for(var f=o[3*u+0],c=o[3*u+1],l=o[3*u+2],h=0;h<f;h+=1)a.push(r(c,l));return a},e}(),b=function(){var t=[],r=0,e={getBuffer:function(){return t},getAt:function(r){var e=Math.floor(r/8);return 1==(t[e]>>>7-r%8&1)},put:function(t,r){for(var n=0;n<r;n+=1)e.putBit(1==(t>>>r-n-1&1))},getLengthInBits:function(){return r},putBit:function(e){var n=Math.floor(r/8);t.length<=n&&t.push(0),e&&(t[n]|=128>>>r%8),r+=1}};return e},M=function(t){var r=a,e=t,n={getMode:function(){return r},getLength:function(t){return e.length},write:function(t){for(var r=e,n=0;n+2<r.length;)t.put(o(r.substring(n,n+3)),10),n+=3;n<r.length&&(r.length-n==1?t.put(o(r.substring(n,n+1)),4):r.length-n==2&&t.put(o(r.substring(n,n+2)),7))}},o=function(t){for(var r=0,e=0;e<t.length;e+=1)r=10*r+i(t.charAt(e));return r},i=function(t){if("0"<=t&&t<="9")return t.charCodeAt(0)-"0".charCodeAt(0);throw"illegal char :"+t};return n},x=function(t){var r=u,e=t,n={getMode:function(){return r},getLength:function(t){return e.length},write:function(t){for(var r=e,n=0;n+1<r.length;)t.put(45*o(r.charAt(n))+o(r.charAt(n+1)),11),n+=2;n<r.length&&t.put(o(r.charAt(n)),6)}},o=function(t){if("0"<=t&&t<="9")return t.charCodeAt(0)-"0".charCodeAt(0);if("A"<=t&&t<="Z")return t.charCodeAt(0)-"A".charCodeAt(0)+10;switch(t){case" ":return 36;case"$":return 37;case"%":return 38;case"*":return 39;case"+":return 40;case"-":return 41;case".":return 42;case"/":return 43;case":":return 44;default:throw"illegal char :"+t}};return n},m=function(r){var e=f,n=t.stringToBytes(r),o={getMode:function(){return e},getLength:function(t){return n.length},write:function(t){for(var r=0;r<n.length;r+=1)t.put(n[r],8)}};return o},L=function(r){var e=c,n=t.stringToBytesFuncs.SJIS;if(!n)throw"sjis not supported.";!function(){var t=n("友");if(2!=t.length||38726!=(t[0]<<8|t[1]))throw"sjis not supported."}();var o=n(r),i={getMode:function(){return e},getLength:function(t){return~~(o.length/2)},write:function(t){for(var r=o,e=0;e+1<r.length;){var n=(255&r[e])<<8|255&r[e+1];if(33088<=n&&n<=40956)n-=33088;else{if(!(57408<=n&&n<=60351))throw"illegal char at "+(e+1)+"/"+n;n-=49472}n=192*(n>>>8&255)+(255&n),t.put(n,13),e+=2}if(e<r.length)throw"illegal char at "+(e+1)}};return i},D=function(){var t=[],r={writeByte:function(r){t.push(255&r)},writeShort:function(t){r.writeByte(t),r.writeByte(t>>>8)},writeBytes:function(t,e,n){e=e||0,n=n||t.length;for(var o=0;o<n;o+=1)r.writeByte(t[o+e])},writeString:function(t){for(var e=0;e<t.length;e+=1)r.writeByte(t.charCodeAt(e))},toByteArray:function(){return t},toString:function(){var r="";r+="[";for(var e=0;e<t.length;e+=1)e>0&&(r+=","),r+=t[e];return r+="]"}};return r},S=function(t){var r=t,e=0,n=0,o=0,i={read:function(){for(;o<8;){if(e>=r.length){if(0==o)return-1;throw"unexpected end of file./"+o}var t=r.charAt(e);if(e+=1,"="==t)return o=0,-1;t.match(/^\s$/)||(n=n<<6|a(t.charCodeAt(0)),o+=6)}var i=n>>>o-8&255;return o-=8,i}},a=function(t){if(65<=t&&t<=90)return t-65;if(97<=t&&t<=122)return t-97+26;if(48<=t&&t<=57)return t-48+52;if(43==t)return 62;if(47==t)return 63;throw"c:"+t};return i},I=function(t,r,e){for(var n=function(t,r){var e=t,n=r,o=new Array(t*r),i={setPixel:function(t,r,n){o[r*e+t]=n},write:function(t){t.writeString("GIF87a"),t.writeShort(e),t.writeShort(n),t.writeByte(128),t.writeByte(0),t.writeByte(0),t.writeByte(0),t.writeByte(0),t.writeByte(0),t.writeByte(255),t.writeByte(255),t.writeByte(255),t.writeString(","),t.writeShort(0),t.writeShort(0),t.writeShort(e),t.writeShort(n),t.writeByte(0);var r=a(2);t.writeByte(2);for(var o=0;r.length-o>255;)t.writeByte(255),t.writeBytes(r,o,255),o+=255;t.writeByte(r.length-o),t.writeBytes(r,o,r.length-o),t.writeByte(0),t.writeString(";")}},a=function(t){for(var r=1<<t,e=1+(1<<t),n=t+1,i=u(),a=0;a<r;a+=1)i.add(String.fromCharCode(a));i.add(String.fromCharCode(r)),i.add(String.fromCharCode(e));var f,c,g,l=D(),h=(f=l,c=0,g=0,{write:function(t,r){if(t>>>r!=0)throw"length over";for(;c+r>=8;)f.writeByte(255&(t<<c|g)),r-=8-c,t>>>=8-c,g=0,c=0;g|=t<<c,c+=r},flush:function(){c>0&&f.writeByte(g)}});h.write(r,n);var s=0,v=String.fromCharCode(o[s]);for(s+=1;s<o.length;){var d=String.fromCharCode(o[s]);s+=1,i.contains(v+d)?v+=d:(h.write(i.indexOf(v),n),i.size()<4095&&(i.size()==1<<n&&(n+=1),i.add(v+d)),v=d)}return h.write(i.indexOf(v),n),h.write(e,n),h.flush(),l.toByteArray()},u=function(){var t={},r=0,e={add:function(n){if(e.contains(n))throw"dup key:"+n;t[n]=r,r+=1},size:function(){return r},indexOf:function(r){return t[r]},contains:function(r){return void 0!==t[r]}};return e};return i}(t,r),o=0;o<r;o+=1)for(var i=0;i<t;i+=1)n.setPixel(i,o,e(i,o));var a=D();n.write(a);for(var u=function(){var t=0,r=0,e=0,n="",o={},i=function(t){n+=String.fromCharCode(a(63&t))},a=function(t){if(t<0);else{if(t<26)return 65+t;if(t<52)return t-26+97;if(t<62)return t-52+48;if(62==t)return 43;if(63==t)return 47}throw"n:"+t};return o.writeByte=function(n){for(t=t<<8|255&n,r+=8,e+=1;r>=6;)i(t>>>r-6),r-=6},o.flush=function(){if(r>0&&(i(t<<6-r),t=0,r=0),e%3!=0)for(var o=3-e%3,a=0;a<o;a+=1)n+="="},o.toString=function(){return n},o}(),f=a.toByteArray(),c=0;c<f.length;c+=1)u.writeByte(f[c]);return u.flush(),"data:image/gif;base64,"+u};return t}();qrcode.stringToBytesFuncs["UTF-8"]=function(t){return function(t){for(var r=[],e=0;e<t.length;e++){var n=t.charCodeAt(e);n<128?r.push(n):n<2048?r.push(192|n>>6,128|63&n):n<55296||n>=57344?r.push(224|n>>12,128|n>>6&63,128|63&n):(e++,n=65536+((1023&n)<<10|1023&t.charCodeAt(e)),r.push(240|n>>18,128|n>>12&63,128|n>>6&63,128|63&n))}return r}(t)},function(t){"function"==typeof define&&define.amd?define([],t):"object"==typeof exports&&(module.exports=t())}((function(){return qrcode}));
+//# sourceMappingURL=/sm/26b4b0d0b1e283d6b3ec9857ac597d7a60c76ac17be1ef4c965f03086de426bb.map
+// 部署地址：GitHub Pages 正式地址（仓库名 nantiyoujie，2026-08-28 过路二改拍板）
+const DEPLOY_URL = "https://zenith0097.github.io/nantiyoujie/";
+const QUOTES = [{"q":"星星之火，可以燎原。","s":"《毛泽东选集》第一卷 · 星星之火，可以燎原 · 1930","c":"迷茫/方向","t":"现在这一点点苗头，也能烧成一片。","yi":"看长期","ji":"因小而不为","famous":"A"},{"q":"认清中国的国情，乃是认清一切革命问题的基本的根据。","s":"《毛泽东选集》第二卷 · 中国革命和中国共产党 · 1939","c":"迷茫/方向","t":"先把你的真实处境看清楚，所有问题才有答案的起点。","yi":"先摸清现状","ji":"凭想象下判断","famous":"B"},{"q":"前途是光明的，道路是曲折的。","s":"《毛泽东选集》第四卷 · 关于重庆谈判 · 1945","c":"迷茫/方向","t":"路不会直，但方向是对的。","yi":"接受曲折","ji":"指望一帆风顺","famous":"A"},{"q":"革命不是请客吃饭。","s":"《毛泽东选集》第一卷 · 湖南农民运动考察报告 · 1927","c":"迷茫/方向","t":"你要干的事不是过家家，别用请客吃饭的心态对待。","yi":"当回事","ji":"当儿戏","famous":"A"},{"q":"夺取全国胜利，这只是万里长征走完了第一步。","s":"《毛泽东选集》第四卷 · 在中国共产党第七届中央委员会第二次全体会议上的报告 · 1949","c":"迷茫/方向","t":"就算这一关过了，也只是开了个头，路还长。","yi":"继续走","ji":"以为到头了","famous":"A"},{"q":"调查就像“十月怀胎”，解决问题就像“一朝分娩”。","s":"《毛泽东选集》第一卷 · 反对本本主义 · 1930","c":"迷茫/方向","t":"想明白是慢功夫，但急不得，生下来就快了。","yi":"耐心调研","ji":"催熟","famous":"B"},{"q":"什么叫工作，工作就是斗争。","s":"《毛泽东选集》第四卷 · 关于重庆谈判 · 1945","c":"迷茫/方向","t":"工作不是享福，是来解决问题、打硬仗的。","yi":"当打仗打","ji":"图舒服","famous":"B"},{"q":"没有调查，没有发言权。","s":"《毛泽东选集》第一卷 · 反对本本主义 · 1930","c":"犹豫/决策","t":"没看过事实，就别急着下结论。","yi":"先做调查","ji":"拍脑袋","famous":"A"},{"q":"马克思主义的最本质的东西，马克思主义的活的灵魂，就在于具体地分析具体的情况。","s":"《毛泽东选集》第一卷 · 矛盾论 · 1937","c":"犹豫/决策","t":"别套模板，你的情况要具体拆。","yi":"具体分析","ji":"套现成模板","famous":"B"},{"q":"我们看事情必须要看它的实质，而把它的现象只看作入门的向导。","s":"《毛泽东选集》第一卷 · 星星之火，可以燎原 · 1930","c":"犹豫/决策","t":"表面现象只是入口，往里看才是真东西。","yi":"看本质","ji":"被表象带跑","famous":"B"},{"q":"你要有知识，你就得参加变革现实的实践。","s":"《毛泽东选集》第一卷 · 实践论 · 1937","c":"行动/拖延","t":"想要真懂，就得动手去改现实。","yi":"下场干","ji":"光看不练","famous":"B"},{"q":"实践、认识、再实践、再认识，这种形式，循环往复以至无穷。","s":"《毛泽东选集》第一卷 · 实践论 · 1937","c":"行动/拖延","t":"干一轮、懂一点、再干一轮，就是这么循环变强的。","yi":"干完就复盘","ji":"停在想","famous":"A"},{"q":"读书是学习，使用也是学习，而且是更重要的学习。","s":"《毛泽东选集》第一卷 · 中国革命战争的战略问题 · 1936","c":"行动/拖延","t":"用了才是真的学，用比读重要。","yi":"马上用起来","ji":"囤而不学","famous":"A"},{"q":"从战争学习战争——这是我们的主要方法。","s":"《毛泽东选集》第一卷 · 中国革命战争的战略问题 · 1936","c":"行动/拖延","t":"最好的学习方式，就是在干的过程中学。","yi":"边干边学","ji":"学完再干","famous":"B"},{"q":"感觉到了的东西，我们不能立刻理解它，只有理解了的东西才更深刻地感觉它。","s":"《毛泽东选集》第一卷 · 实践论 · 1937","c":"行动/拖延","t":"上手了、理解了，才能真懂一件事。","yi":"先上手","ji":"旁观","famous":"B"},{"q":"凡事预则立，不预则废。","s":"《毛泽东选集》第二卷 · 论持久战 · 1938","c":"行动/拖延","t":"想清楚再动手，没准备的事容易黄。","yi":"先准备","ji":"裸奔开工","famous":"A"},{"q":"不打无准备之仗，不打无把握之仗。","s":"《毛泽东选集》第四卷 · 目前形势和我们的任务 · 1947","c":"行动/拖延","t":"没准备好、没把握，就先别打。","yi":"备足再上","ji":"仓促上阵","famous":"A"},{"q":"我们的同志在困难的时候，要看到成绩，要看到光明，要提高我们的勇气。","s":"《毛泽东选集》第三卷 · 为人民服务 · 1944","c":"坚持/低谷","t":"难的时候，别只盯着难，看看已经有的成绩和前面的光。","yi":"看已得的成绩","ji":"只盯困难","famous":"A"},{"q":"我们中华民族有同自己的敌人血战到底的气概，有在自力更生的基础上光复旧物的决心，有自立于世界民族之林的能力。","s":"《毛泽东选集》第一卷 · 论反对日本帝国主义的策略 · 1935","c":"坚持/低谷","t":"你有跟困难干到底的底气，也有自己站起来的本事。","yi":"信自己","ji":"认怂","famous":"A"},{"q":"我们的方针是针锋相对，寸土必争。","s":"《毛泽东选集》第四卷 · 抗日战争胜利后的时局和我们的方针 · 1945","c":"坚持/低谷","t":"该争的，一寸都不让。","yi":"守住底线","ji":"轻易退让","famous":"A"},{"q":"一切革命队伍的人都要互相关心，互相爱护，互相帮助。","s":"《毛泽东选集》第三卷 · 为人民服务 · 1944","c":"人际/团结","t":"同一条船上的人，互相拉一把。","yi":"主动帮人","ji":"各扫门前雪","famous":"A"},{"q":"群众是真正的英雄，而我们自己则往往是幼稚可笑的。","s":"《毛泽东选集》第三卷 · 《农村调查》的序言和跋 · 1941","c":"人际/团结","t":"别觉得自己最懂，真本事常常在大家手里。","yi":"听大家的","ji":"自以为是","famous":"A"},{"q":"只要我们依靠人民，坚决地相信人民群众的创造力是无穷无尽的，因而信任人民，和人民打成一片，那就任何困难也能克服。","s":"《毛泽东选集》第三卷 · 论联合政府 · 1945","c":"人际/团结","t":"跟人打成一片，就没有过不去的坎。","yi":"融入大家","ji":"单打独斗","famous":"A"},{"q":"房子是应该经常打扫的，不打扫就会积满了灰尘；脸是应该经常洗的，不洗也就会灰尘满面。","s":"《毛泽东选集》第三卷 · 论联合政府 · 1945","c":"批评/自我","t":"思想也得经常洗，不洗就脏了。","yi":"定期自省","ji":"放任不管","famous":"B"},{"q":"因为我们是为人民服务的，所以，我们如果有缺点，就不怕别人批评指出。","s":"《毛泽东选集》第三卷 · 为人民服务 · 1944","c":"批评/自我","t":"有毛病不怕人说，改了就好。","yi":"听批评","ji":"听不得意见","famous":"A"},{"q":"错误和挫折教训了我们，使我们比较地聪明起来了。","s":"《毛泽东选集》第四卷 · 论人民民主专政 · 1949","c":"批评/自我","t":"栽过的跟头，是让你变聪明最贵的学费。","yi":"从错误里学","ji":"白摔跟头","famous":"B"},{"q":"有无认真的自我批评，也是我们和其他政党互相区别的显著的标志之一。","s":"《毛泽东选集》第三卷 · 论联合政府 · 1945","c":"批评/自我","t":"敢不敢认真挑自己的毛病，是人和人的分水岭。","yi":"先挑自己毛病","ji":"只挑别人","famous":"B"},{"q":"一切反动派都是纸老虎。","s":"《毛泽东选集》第四卷 · 和美国记者安娜·路易斯·斯特朗的谈话 · 1946","c":"困难/压力","t":"看着吓人的东西，往往是纸糊的。","yi":"看穿它","ji":"被吓住","famous":"A"},{"q":"没有文化的军队是愚蠢的军队，而愚蠢的军队是不能战胜敌人的。","s":"《毛泽东选集》第三卷 · 文化工作中的统一战线 · 1944","c":"成长/学习","t":"不学习的人，连仗都打不赢。","yi":"补功课","ji":"吃老本","famous":"B"},{"q":"学习的敌人是自己的满足。","s":"《毛泽东选集》第二卷 · 中国共产党在民族战争中的地位 · 1938","c":"成长/学习","t":"觉得自己够了，就是你停止进步的那天。","yi":"保持不满足","ji":"自满","famous":"B"},{"q":"学习的敌人是自己的满足，要认真学习一点东西，必须从不自满开始。","s":"《毛泽东选集》第二卷 · 中国共产党在民族战争中的地位 · 1938","c":"成长/学习","t":"真想学东西，先把自己的'够'字删掉。","yi":"清零心态","ji":"自满","famous":"B"},{"q":"下定决心，不怕牺牲，排除万难，去争取胜利。","s":"《毛泽东选集》第三卷 · 愚公移山 · 1945","c":"困难/压力","t":"认准了，就豁出去干，再难也上。","yi":"豁出去","ji":"半途而废","famous":"A"},{"q":"中国人死都不怕，还怕困难吗？","s":"《毛泽东选集》第四卷 · 别了，司徒雷登 · 1949","c":"困难/压力","t":"最难的事都过来了，这点困难算什么。","yi":"扛过去","ji":"被吓倒","famous":"A"},{"q":"谅解、支援和友谊，比什么都重要。","s":"《毛泽东选集》第四卷 · 党委会的工作方法 · 1949","c":"人际/团结","t":"一起干活，互相体谅和支持比什么都值钱。","yi":"多谅解","ji":"斤斤计较","famous":"B"},{"q":"我们的任务是过河，但是没有桥或没有船就不能过。","s":"《毛泽东选集》第一卷 · 关心群众生活，注意工作方法 · 1934","c":"行动/拖延","t":"目标定了，还得有办法，不然到不了对岸。","yi":"找方法","ji":"光喊目标","famous":"A"},{"q":"敌进我退，敌驻我扰，敌疲我打，敌退我追。","s":"《毛泽东选集》第一卷 · 中国革命战争的战略问题 · 1936","c":"困难/压力","t":"对方强时别硬碰，等它累了下手。","yi":"灵活应对","ji":"硬碰硬","famous":"A"},{"q":"无实事求是之意，有哗众取宠之心。","s":"《毛泽东选集》第三卷 · 改造我们的学习 · 1941","c":"批评/自我","t":"做事不是奔着解决问题，而是奔着好看。","yi":"求实","ji":"哗众取宠","famous":"B"},{"q":"错误常常是正确的先导。","s":"《毛泽东选集》第三卷 · 改造我们的学习 · 1941","c":"批评/自我","t":"走错的路，往往是走对路的开头。","yi":"从错里学","ji":"白错一场","famous":"B"},{"q":"墙上芦苇，头重脚轻根底浅；山间竹笋，嘴尖皮厚腹中空。","s":"《毛泽东选集》第三卷 · 改造我们的学习 · 1941","c":"批评/自我","t":"根基不牢、没真东西的人，一眼就被看穿。","yi":"打牢底子","ji":"装样子","famous":"B"},{"q":"事不关己，高高挂起；明知不对，少说为佳；明哲保身，但求无过。","s":"《毛泽东选集》第二卷 · 反对自由主义 · 1937","c":"批评/自我","t":"看到不对也不敢说，只想自己没事——这是毛病不是聪明。","yi":"该说就说","ji":"明哲保身","famous":"B"},{"q":"所谓放下包袱，就是说，我们精神上的许多负担应该加以解除。","s":"《毛泽东选集》第三卷 · 学习和时局 · 1944","c":"困难/压力","t":"把心里的负担卸下来，人才能轻装往前走。","yi":"卸下负担","ji":"背着包袱硬扛","famous":"B"},{"q":"没有眼睛向下的兴趣和决心，是一辈子也不会真正懂得中国的事情的。","s":"《毛泽东选集》第三卷 · 《农村调查》的序言和跋 · 1941","c":"成长/学习","t":"不肯俯下身去了解，就一辈子搞不懂真正的情况。","yi":"放低姿态去了解","ji":"高高在上想当然","famous":"B"},{"q":"扫帚不到，灰尘照例不会自己跑掉。","s":"《毛泽东选集》第四卷 · 抗日战争胜利后的时局和我们的方针 · 1945","c":"行动/拖延","t":"问题不会自己消失，不去动它，它就一直在那。","yi":"亲自去扫","ji":"等它自己干净","famous":"A"},{"q":"没有全局在胸，是不会真的投下一着好棋子的。","s":"《毛泽东选集》第一卷 · 中国革命战争的战略问题 · 1936","c":"迷茫/方向","t":"心里没有整盘棋，就下不出真正的好棋。","yi":"先看全局","ji":"只顾眼前","famous":"B"},{"q":"常常不是先学好了再干，而是干起来再学习，干就是学习。","s":"《毛泽东选集》第一卷 · 中国革命战争的战略问题 · 1936","c":"行动/拖延","t":"别等学好了再动手，干起来学得最快。","yi":"边干边学","ji":"等准备好了再说","famous":"B"},{"q":"唯物辩证法认为外因是变化的条件，内因是变化的根据。","s":"《毛泽东选集》第一卷 · 矛盾论 · 1937","c":"成长/学习","t":"别人的影响只是条件，你自己才是变化的根本。","yi":"从自己身上找原因","ji":"全怪环境","famous":"B"},{"q":"调查就像“十月怀胎”，解决问题就像“一朝分娩”。","s":"《毛泽东选集》第一卷 · 反对本本主义 · 1930","c":"行动/拖延","t":"把情况摸透像十月怀胎，问题解决是一朝分娩。","yi":"先摸透","ji":"上来就解决","famous":"B"},{"q":"一，不做调查没有发言权。二，不做正确的调查同样没有发言权。","s":"《毛泽东选集》第一卷 · 反对本本主义 · 1930","c":"犹豫/决策","t":"没调查就没发言权；调查做错了，同样没发言权。","yi":"认真调查","ji":"随便问问就下结论","famous":"B"},{"q":"开始准备的时机问题，一般地说来，与其失之过迟，不如失之过早。","s":"《毛泽东选集》第一卷 · 中国革命战争的战略问题 · 1936","c":"行动/拖延","t":"准备宁可早一点，别等到来不及。","yi":"早做准备","ji":"拖到最后","famous":"B"},{"q":"一切真知都是从直接经验发源的。","s":"《毛泽东选集》第一卷 · 实践论 · 1937","c":"成长/学习","t":"真正的懂得，都是从自己亲身经历来的。","yi":"亲自去经历","ji":"光听别人讲","famous":"B"},{"q":"我们需要的是热烈而镇定的情绪，紧张而有秩序的工作。","s":"《毛泽东选集》第一卷 · 中国革命战争的战略问题 · 1936","c":"困难/压力","t":"越忙越要稳，情绪要热，做事要有条理。","yi":"热而稳","ji":"乱成一团","famous":"A"},{"q":"你要知道梨子的滋味，你就得变革梨子，亲口吃一吃。","s":"《毛泽东选集》第一卷 · 实践论 · 1937","c":"成长/学习","t":"想知道一件事是什么滋味，就得亲手去碰一碰、试一试。","yi":"亲口尝一尝","ji":"站在旁边猜","famous":"A"},{"q":"武器是战争的重要的因素，但不是决定的因素，决定的因素是人不是物。","s":"《毛泽东选集》第二卷 · 论持久战 · 1938","c":"成长/学习","t":"工具重要，但用工具的人才是关键。","yi":"提升自己","ji":"只怪条件差","famous":"A"},{"q":"一个人做事只凭动机，不问效果，等于一个医生只顾开药方，病人吃死了多少他是不管的。","s":"《毛泽东选集》第三卷 · 在延安文艺座谈会上的讲话 · 1942","c":"行动/拖延","t":"光有好心不够，要看结果对不对。","yi":"看结果","ji":"只管动机","famous":"B"},{"q":"把问题摆到桌面上来。","s":"《毛泽东选集》第四卷 · 党委会的工作方法 · 1949","c":"人际/团结","t":"有分歧就当面说开，别憋着。","yi":"当面说开","ji":"背后嘀咕","famous":"A"},{"q":"抓而不紧，等于不抓。","s":"《毛泽东选集》第四卷 · 党委会的工作方法 · 1949","c":"行动/拖延","t":"做一件事不抓到底，等于没做。","yi":"一抓到底","ji":"抓抓停停","famous":"A"},{"q":"胸中有“数”。","s":"《毛泽东选集》第四卷 · 党委会的工作方法 · 1949","c":"犹豫/决策","t":"心里要有实数，不能稀里糊涂。","yi":"心里有数","ji":"心中无数","famous":"B"},{"q":"世界上没有直路，要准备走曲折的路。","s":"《毛泽东选集》第四卷 · 关于重庆谈判 · 1945","c":"坚持/低谷","t":"别指望一帆风顺，路本来就是弯的。","yi":"接受曲折","ji":"以为有捷径","famous":"B"},{"q":"纸上的东西并不等于现实的东西。","s":"《毛泽东选集》第四卷 · 关于重庆谈判 · 1945","c":"犹豫/决策","t":"写下来的、说好的，都不等于真能做到。","yi":"看实际落地","ji":"信纸面文章","famous":"B"},{"q":"没有矛盾就没有世界。","s":"《毛泽东选集》第一卷 · 矛盾论 · 1937","c":"坚持/低谷","t":"有矛盾是常态，别指望事事顺心。","yi":"接受矛盾存在","ji":"幻想无矛盾","famous":"A"},{"q":"不同质的矛盾，只有用不同质的方法才能解决。","s":"《毛泽东选集》第一卷 · 矛盾论 · 1937","c":"犹豫/决策","t":"不同的问题要用不同的办法，别一套打天下。","yi":"对症下药","ji":"一套办法到处用","famous":"B"},{"q":"艰苦的工作就像担子，摆在我们的面前，看我们敢不敢承担。","s":"《毛泽东选集》第四卷 · 关于重庆谈判 · 1945","c":"困难/压力","t":"难活就像担子，看敢不敢挑。","yi":"敢挑担子","ji":"把担子推给别人","famous":"B"},{"q":"事情有大道理，有小道理，一切小道理都归大道理管着。","s":"《毛泽东选集》第二卷 · 反对日本进攻的方针、办法和前途 · 1937","c":"迷茫/方向","t":"小事上的道理，都要服从大方向上的道理。","yi":"先想大道理","ji":"纠结小道理","famous":"B"},{"q":"我们大家要学习他毫无自私自利之心的精神。","s":"《毛泽东选集》第二卷 · 纪念白求恩 · 1939","c":"人际/团结","t":"学那种一心为公、不掺私心的劲头。","yi":"少点私心","ji":"处处只为自己","famous":"A"},{"q":"我们的任务是过河，但是没有桥或没有船就不能过。不解决桥或船的问题，过河就是一句空话。","s":"《毛泽东选集》第一卷 · 关心群众生活，注意工作方法 · 1934","c":"行动/拖延","t":"光有目标不够，得先解决怎么过去的问题。","yi":"先解决方法","ji":"光喊目标","famous":"A"},{"q":"打得赢就打，打不赢就走。","s":"《毛泽东选集》第一卷 · 中国革命战争的战略问题 · 1936","c":"犹豫/决策","t":"能干就干，干不了先撤，别死磕。","yi":"该撤就撤","ji":"死磕到底","famous":"A"},{"q":"东方不亮西方亮，黑了南方有北方。","s":"《毛泽东选集》第一卷 · 中国革命战争的战略问题 · 1936","c":"坚持/低谷","t":"这条路不通，还有别的路。","yi":"换条路走","ji":"一条路走到黑","famous":"A"},{"q":"伤其十指不如断其一指。","s":"《毛泽东选集》第一卷 · 中国革命战争的战略问题 · 1936","c":"行动/拖延","t":"摊开十个都不透，不如集中一个做透。","yi":"集中打透","ji":"到处撒网","famous":"A"},{"q":"看菜吃饭，量体裁衣。","s":"《毛泽东选集》第三卷 · 反对党八股 · 1942","c":"犹豫/决策","t":"有多大的料做多大的事，别硬撑。","yi":"量力而行","ji":"贪大求全","famous":"A"},{"q":"到什么山上唱什么歌。","s":"《毛泽东选集》第三卷 · 反对党八股 · 1942","c":"人际/团结","t":"在什么场合说什么话，见机行事。","yi":"入乡随俗","ji":"一根筋","famous":"A"},{"q":"捉住了这个主要矛盾，一切问题就迎刃而解了。","s":"《毛泽东选集》第一卷 · 矛盾论 · 1937","c":"犹豫/决策","t":"抓住最关键的那个问题，其它都会跟着解开。","yi":"抓主要矛盾","ji":"眉毛胡子一把抓","famous":"B"},{"q":"一个人能力有大小，但只要有这点精神，就是一个高尚的人。","s":"《毛泽东选集》第二卷 · 纪念白求恩 · 1939","c":"成长/学习","t":"能力有大小，但精神境界是自己的选择。","yi":"修心修德","ji":"只看本事大小","famous":"A"},{"q":"我们是为着解决困难去工作、去斗争的。","s":"《毛泽东选集》第四卷 · 关于重庆谈判 · 1945","c":"困难/压力","t":"人就是为了解决困难才干活的。","yi":"冲着困难去","ji":"躲困难走","famous":"B"},{"q":"不破不立，不塞不流，不止不行。","s":"《毛泽东选集》第二卷 · 新民主主义论 · 1940","c":"行动/拖延","t":"旧的破不了，新的立不起来。","yi":"敢破敢立","ji":"守着旧的将就","famous":"A"},{"q":"从群众中来，到群众中去。","s":"《毛泽东选集》第三卷 · 关于领导方法的若干问题 · 1943","c":"人际/团结","t":"办法从大家那里来，再回到大家那里落地。","yi":"到大家中间去","ji":"关起门来想","famous":"A"},{"q":"空话连篇，言之无物。","s":"《毛泽东选集》第三卷 · 反对党八股 · 1942","c":"批评/自我","t":"说一堆没内容的话，等于没说。","yi":"言之有物","ji":"空话连篇","famous":"A"},{"q":"装腔作势，借以吓人。","s":"《毛泽东选集》第三卷 · 反对党八股 · 1942","c":"批评/自我","t":"靠装样子吓唬人，最没底气。","yi":"以理服人","ji":"装腔作势","famous":"B"},{"q":"我们一定要坚持下去，一定要不断地工作，我们也会感动上帝的。","s":"《毛泽东选集》第三卷 · 愚公移山 · 1945","c":"坚持/低谷","t":"一直做下去，连老天都会被感动。","yi":"一直做下去","ji":"三天热度","famous":"A"},{"q":"凡事应该用脑筋好好想一想。","s":"《毛泽东选集》第三卷 · 学习和时局 · 1944","c":"犹豫/决策","t":"遇事先动脑子想一想，别急着表态。","yi":"多想一步","ji":"不假思索","famous":"B"},{"q":"世界上的事情是复杂的，是由各方面的因素决定的。","s":"《毛泽东选集》第四卷 · 关于重庆谈判 · 1945","c":"犹豫/决策","t":"事情复杂，别用单一原因解释。","yi":"多角度看","ji":"一根筋","famous":"B"},{"q":"我们共产党人好比种子，人民好比土地。","s":"《毛泽东选集》第四卷 · 关于重庆谈判 · 1945","c":"人际/团结","t":"人要在群众里扎下根，才能长成。","yi":"扎下根","ji":"漂着不落地","famous":"A"},{"q":"什么叫工作，工作就是斗争。那些地方有困难、有问题，需要我们去解决。","s":"《毛泽东选集》第四卷 · 关于重庆谈判 · 1945","c":"行动/拖延","t":"工作就是跟困难较劲。","yi":"把困难当对手","ji":"绕着困难走","famous":"B"},{"q":"没有放下臭架子、甘当小学生的精神，是一定不能做，也一定做不好的。","s":"《毛泽东选集》第三卷 · 《农村调查》的序言和跋 · 1941","c":"成长/学习","t":"放不下架子，就学不到真东西。","yi":"甘当小学生","ji":"放不下架子","famous":"B"},{"q":"调查就是解决问题。","s":"《毛泽东选集》第一卷 · 反对本本主义 · 1930","c":"行动/拖延","t":"把情况摸清了，问题自己就解了一半。","yi":"先调查","ji":"凭感觉下判断","famous":"B"},{"q":"对工作的极端的负责任，对同志对人民的极端的热忱。","s":"《毛泽东选集》第二卷 · 纪念白求恩 · 1939","c":"人际/团结","t":"干活要负责到底，对人要真心实意。","yi":"负责到底","ji":"敷衍了事","famous":"B"},{"q":"我们走过了许多弯路。但是错误常常是正确的先导。","s":"《毛泽东选集》第三卷 · 改造我们的学习 · 1941","c":"坚持/低谷","t":"弯路没白走，错过的路教会你正路。","yi":"从错里学","ji":"怕错就不走","famous":"B"},{"q":"世界上只有猫和猫做朋友的事，我没有猫和老鼠做朋友的事。","s":"《毛泽东选集》第二卷 · 论持久战 · 1938","c":"人际/团结","t":"凑不来的圈子别硬凑。","yi":"找同路人","ji":"跟不对路的人耗","famous":"A"},{"q":"当面不说，背后乱说；开会不说，会后乱说。","s":"《毛泽东选集》第二卷 · 反对自由主义 · 1937","c":"人际/团结","t":"有话当面说，别在背后嘀咕。","yi":"当面说","ji":"背后嘀咕","famous":"A"},{"q":"事不关己，高高挂起。","s":"《毛泽东选集》第二卷 · 反对自由主义 · 1937","c":"批评/自我","t":"事不关己就躲开，是最大的不负责任。","yi":"搭把手","ji":"高高挂起","famous":"B"},{"q":"明知不对，少说为佳。","s":"《毛泽东选集》第二卷 · 反对自由主义 · 1937","c":"批评/自我","t":"明明不对还少说为佳，等于默认了错。","yi":"指出来","ji":"少说为佳","famous":"B"},{"q":"做一天和尚撞一天钟。","s":"《毛泽东选集》第二卷 · 反对自由主义 · 1937","c":"行动/拖延","t":"混日子，日子也会混你。","yi":"认真过每一天","ji":"做一天和尚撞一天钟","famous":"A"},{"q":"一个高尚的人，一个纯粹的人，一个有道德的人，一个脱离了低级趣味的人，一个有益于人民的人。","s":"《毛泽东选集》第二卷 · 纪念白求恩 · 1939","c":"成长/学习","t":"把标准抬高一点，做一个纯粹、有用的人。","yi":"往高处修","ji":"随波逐流","famous":"A"},{"q":"知彼知己，百战不殆。","s":"《毛泽东选集》第一卷 · 中国革命战争的战略问题 · 1936","c":"犹豫/决策","t":"摸清对方也摸清自己，才能稳赢。","yi":"摸清两边","ji":"只知己不知彼","famous":"A"},{"q":"世上无难事，只怕有心人。","s":"《毛泽东选集》第一卷 · 中国革命战争的战略问题 · 1936","c":"坚持/低谷","t":"世上没有难事，就怕你不用心。","yi":"用心做","ji":"敷衍了事","famous":"A"},{"q":"丢掉幻想，准备斗争。","s":"《毛泽东选集》第四卷 · 丢掉幻想，准备斗争 · 1949","c":"困难/压力","t":"别指望天上掉馅饼，准备真刀真枪干。","yi":"丢掉幻想","ji":"抱着幻想等","famous":"A"},{"q":"马克思主义者不是算命先生。","s":"《毛泽东选集》第一卷 · 星星之火，可以燎原 · 1930","c":"迷茫/方向","t":"别想让人给你算准未来，方向靠自己去走。","yi":"自己走方向","ji":"等别人算卦","famous":"B"},{"q":"我们不但要提出任务，而且要解决完成任务的方法问题。","s":"《毛泽东选集》第一卷 · 关心群众生活，注意工作方法 · 1934","c":"行动/拖延","t":"光有目标不够，还得有办法。","yi":"先想方法","ji":"光喊目标","famous":"B"},{"q":"去粗取精，去伪存真，由此及彼，由表及里。","s":"《毛泽东选集》第一卷 · 中国革命战争的战略问题 · 1936","c":"成长/学习","t":"看东西要去掉杂的、假的，抓住真的、深的。","yi":"抓本质","ji":"被表面带跑","famous":"A"},{"q":"一切事情是要人做的。","s":"《毛泽东选集》第2卷 · 论持久战 · 1938","c":"行动/拖延","t":"事不会自己成，得有人去做。","yi":"动手做","ji":"等着它自己好","famous":"B"},{"q":"矫枉必须过正，不过正不能矫枉。","s":"《毛泽东选集》第1卷 · 湖南农民运动考察报告 · 年份待核验","c":"行动/拖延","t":"要改就改透，不彻底等于没改。","yi":"改透","ji":"浅尝辄止","famous":"A"},{"q":"到群众中作实际调查去！","s":"《毛泽东选集》第1卷 · 反对本本主义 · 1930","c":"行动/拖延","t":"别坐在屋里猜，到真实的环境里去摸情况。","yi":"到实地去","ji":"坐屋里猜","famous":"B"},{"q":"只有人们的社会实践，才是人们对于外界认识的真理性的标准。","s":"《毛泽东选集》第1卷 · 实践论 · 1937","c":"成长/学习","t":"说一千道一万，实践是检验的唯一标准。","yi":"拿实践验证","ji":"嘴上说算","famous":"B"},{"q":"惩前毖后，治病救人。","s":"《毛泽东选集》第3卷 · 学习和时局 · 1944","c":"批评/自我","t":"批评是为了治病，不是为了出气。","yi":"治病救人","ji":"借批评整人","famous":"A"},{"q":"务必使同志们继续地保持谦虚、谨慎、不骄、不躁的作风。","s":"《毛泽东选集》第4卷 · 在中国共产党第七届中央委员会第二次全体会议上的报告 · 1949","c":"批评/自我","t":"越顺越要稳，骄和躁是败的前奏。","yi":"谦虚谨慎","ji":"一顺就飘","famous":"A"},{"q":"我们不但善于破坏一个旧世界，我们还将善于建设一个新世界。","s":"《毛泽东选集》第4卷 · 在中国共产党第七届中央委员会第二次全体会议上的报告 · 1949","c":"成长/学习","t":"会拆更要会建——不能只会否定，得能立起来。","yi":"敢破敢立","ji":"只破不立","famous":"A"},{"q":"我们能够学会我们原来不懂的东西。","s":"《毛泽东选集》第4卷 · 在中国共产党第七届中央委员会第二次全体会议上的报告 · 1949","c":"成长/学习","t":"不懂不怕，学得会。","yi":"去学","ji":"觉得学不会","famous":"B"},{"q":"知无不言，言无不尽。","s":"《毛泽东选集》第3卷 · 论联合政府 · 1945","c":"人际/团结","t":"心里话摆到明面上，藏着掖着解决不了问题。","yi":"知无不言","ji":"藏着不说","famous":"A"},{"q":"言者无罪，闻者足戒。","s":"《毛泽东选集》第3卷 · 论联合政府 · 1945","c":"批评/自我","t":"别人提意见，先别急着反驳——有则改之，无则加勉。","yi":"听得进逆耳话","ji":"一听就炸","famous":"A"},{"q":"世上决没有无缘无故的爱，也没有无缘无故的恨。","s":"《毛泽东选集》第3卷 · 在延安文艺座谈会上的讲话 · 1942","c":"人际/团结","t":"态度都有来由，先问为什么，别只看表面。","yi":"找原因","ji":"只看表面","famous":"A"},{"q":"精通的目的全在于应用。","s":"《毛泽东选集》第3卷 · 整顿党的作风 · 1942","c":"成长/学习","t":"学到能用的程度，才算真会。","yi":"学以致用","ji":"学而不用","famous":"B"},{"q":"三个臭皮匠，合成一个诸葛亮。","s":"《毛泽东选集》第3卷 · 组织起来 · 年份待核验","c":"人际/团结","t":"一个人想不出来的，几个人一凑就出来了。","yi":"找人商量","ji":"一个人硬想","famous":"A"},{"q":"我们共产党员应该经风雨，见世面。","s":"《毛泽东选集》第3卷 · 组织起来 · 年份待核验","c":"成长/学习","t":"别躲着事走，经历过了才是真本事。","yi":"去经历","ji":"躲着走","famous":"B"},{"q":"我们要承认困难，分析困难，向困难作斗争。","s":"《毛泽东选集》第4卷 · 关于重庆谈判 · 1945","c":"困难/压力","t":"先承认难，再拆开看，然后一件件对付。","yi":"承认并分析","ji":"假装不难","famous":"A"},{"q":"群众是真正的英雄。","s":"《毛泽东选集》第3卷 · 《农村调查》的序言和跋 · 1941","c":"人际/团结","t":"别小看普通人，真正的智慧在大家手里。","yi":"向众人学","ji":"自命不凡","famous":"A"},{"q":"将欲取之，必先与之。","s":"《毛泽东选集》第1卷 · 中国革命战争的战略问题 · 1936","c":"行动/拖延","t":"想拿大的，先肯舍小的——有舍才有得。","yi":"先舍后得","ji":"光想白拿","famous":"A"},{"q":"放在自己力量的基点上。","s":"《毛泽东选集》第4卷 · 抗日战争胜利后的时局和我们的方针 · 1945","c":"困难/压力","t":"指望谁都不如指望自己——先把自己的底子打牢。","yi":"靠自己","ji":"靠别人","famous":"B"},{"q":"自己动手，克服困难。","s":"《毛泽东选集》第3卷 · 开展根据地的减租、生产和拥政爱民运动 · 年份待核验","c":"行动/拖延","t":"别等别人给，自己动手，困难就小一半。","yi":"自己动手","ji":"坐等现成","famous":"A"},{"q":"外因是变化的条件，内因是变化的根据。","s":"《毛泽东选集》第1卷 · 矛盾论 · 1937","c":"成长/学习","t":"别人只能帮你创造条件，变不变，根子在自己。","yi":"从自己改起","ji":"全怪环境","famous":"A"},{"q":"感觉只解决现象问题，理论才解决本质问题。","s":"《毛泽东选集》第1卷 · 实践论 · 1937","c":"成长/学习","t":"光有感觉不够，想明白道理，才抓得住根子。","yi":"想透道理","ji":"凭感觉","famous":"B"},{"q":"世间一切事物中，人是第一个可宝贵的。","s":"《毛泽东选集》第4卷 · 唯心历史观的破产 · 年份待核验","c":"人际/团结","t":"事情再大，人比事重要——别把人丢了。","yi":"以人为本","ji":"重事轻人","famous":"A"},{"q":"睡眠和休息丧失了时间，却取得了明天工作的精力。","s":"《毛泽东选集》第1卷 · 中国革命战争的战略问题 · 1936","c":"行动/拖延","t":"休息不是浪费，是给明天充电。","yi":"好好休息","ji":"硬撑","famous":"B"},{"q":"失败确是成功之母。","s":"《毛泽东选集》第1卷 · 中国革命战争的战略问题 · 1936","c":"坚持/低谷","t":"这次的败，就是下次成的妈。","yi":"从败里学","ji":"败了就完","famous":"A"},{"q":"弹钢琴要十个指头都动作，不能有的动，有的不动。","s":"《毛泽东选集》第4卷 · 党委会的工作方法 · 1949","c":"行动/拖延","t":"事情多的时候，要十根指头一起弹，不能只管一头。","yi":"统筹兼顾","ji":"顾此失彼","famous":"A"},{"q":"向着最坏的一种可能性作准备。","s":"《毛泽东选集》第2卷 · 关于打退第二次反共高潮的总结 · 年份待核验","c":"困难/压力","t":"把最坏的情况准备到，心里就有底了。","yi":"做最坏打算","ji":"心存侥幸","famous":"B"},{"q":"不入虎穴，焉得虎子。","s":"《毛泽东选集》第1卷 · 实践论 · 1937","c":"行动/拖延","t":"想拿真东西，就得敢进虎穴。","yi":"敢去闯","ji":"怕虎不敢动","famous":"A"},{"q":"真理的标准只能是社会的实践。","s":"《毛泽东选集》第1卷 · 实践论 · 1937","c":"成长/学习","t":"行不行，拉出来练一练才知道。","yi":"练一练","ji":"嘴上说算","famous":"B"},{"q":"实践、认识、再实践、再认识。","s":"《毛泽东选集》第1卷 · 实践论 · 1937","c":"成长/学习","t":"干→想→再干→再想，本事就是这么长出来的。","yi":"边干边悟","ji":"光想不干","famous":"A"},{"q":"马克思主义的“本本”是要学习的，但是必须同我国的实际情况相结合。","s":"《毛泽东选集》第1卷 · 反对本本主义 · 1930","c":"成长/学习","t":"书要读，但不能死读书——得跟现实对得上。","yi":"读活书","ji":"死背书","famous":"B"},{"q":"往往有这种情形，有利的情况和主动的恢复，产生于“再坚持一下”的努力之中。","s":"《毛泽东选集》第2卷 · 抗日游击战争的战略问题 · 年份待核验","c":"坚持/低谷","t":"熬过最想放弃的那一刻，局面往往就翻过来了。","yi":"再坚持一下","ji":"倒在黎明前","famous":"A"},{"q":"一着不慎，满盘皆输。","s":"《毛泽东选集》第1卷 · 中国革命战争的战略问题 · 1936","c":"犹豫/决策","t":"关键一步走错，全盘都搭进去——重要关头想清楚。","yi":"想清楚再走","ji":"草率落子","famous":"A"},{"q":"越是困难的地方越是要去。","s":"《毛泽东选集》第4卷 · 关于重庆谈判 · 1945","c":"困难/压力","t":"难的地方才藏着机会，迎难而上才是路。","yi":"迎难而上","ji":"绕开困难","famous":"A"},{"q":"从群众中集中起来，又到群众中坚持下去。","s":"《毛泽东选集》第3卷 · 关于领导方法的若干问题 · 1943","c":"人际/团结","t":"主意从大家那里来，定了再回到大家那里去。","yi":"从大家中来","ji":"一个人拍板","famous":"B"},{"q":"贪污和浪费是极大的犯罪。","s":"《毛泽东选集》第1卷 · 我们的经济政策 · 1934","c":"批评/自我","t":"拿不该拿的、糟蹋东西，都是大错。","yi":"珍惜一切","ji":"浪费无度","famous":"A"},{"q":"任何过程如果有多数矛盾存在的话，其中必定有一种是主要的。","s":"《毛泽东选集》第1卷 · 矛盾论 · 1937","c":"犹豫/决策","t":"问题再多，也总有一个是主要的——抓住它。","yi":"抓主要的","ji":"眉毛胡子一把抓","famous":"B"},{"q":"要奋斗就会有牺牲。","s":"《毛泽东选集》第3卷 · 为人民服务 · 1944","c":"坚持/低谷","t":"想成事就得付出代价，没有白得的。","yi":"准备好付出","ji":"只想白拿","famous":"A"},{"q":"只要你说得对，我们就改正。","s":"《毛泽东选集》第3卷 · 为人民服务 · 1944","c":"批评/自我","t":"别人提得对，就改——这没什么丢人的。","yi":"听得进改得了","ji":"死不认错","famous":"A"},{"q":"我们如果有缺点，就不怕别人批评指出。","s":"《毛泽东选集》第3卷 · 为人民服务 · 1944","c":"批评/自我","t":"有缺点别藏着，让人指出来，改就是了。","yi":"不怕批评","ji":"护短","famous":"B"}];
+const DECISIONS = [{"id":"leave","name":"走还是留","desc":"要不要改变现状","keys":["该不该","要不要","值不值得","走不走","留不留","换不换","离不离开","辞不辞","该不该换","要不要继续","该不该放弃","要不要坚持","想不想走","应不应该","需不需要","划不划算","该不该去","要不要做","要不要开始","做不做","参不参加","去不去","报不报","买不买","退不退","该不该做","要不要改","要不要换","想不想","该不该留","要不要辞职","要不要分手","裸辞","辞职","离职","跳槽"],"pool":["没有调查，没有发言权。","不打无准备之仗，不打无把握之仗。","凡事预则立，不预则废。","一着不慎，满盘皆输。","没有全局在胸，是不会真的投下一着好棋子的。","胸中有“数”。","打得赢就打，打不赢就走。","伤其十指不如断其一指。","革命不是请客吃饭。","不破不立，不塞不流，不止不行。","矫枉必须过正，不过正不能矫枉。","我们不但善于破坏一个旧世界，我们还将善于建设一个新世界。","夺取全国胜利，这只是万里长征走完了第一步。","做一天和尚撞一天钟。","将欲取之，必先与之。","放在自己力量的基点上。","要奋斗就会有牺牲。","一，不做调查没有发言权。二，不做正确的调查同样没有发言权。","东方不亮西方亮，黑了南方有北方。"]},{"id":"choose","name":"怎么选","desc":"多选一，拿不定主意","keys":["怎么选","选哪个","选什么","二选一","哪个好","哪个更","怎么挑","怎么决定","怎么抉择","拿不定","犹豫","摇摆","纠结","权衡","选哪个好","如何选择","哪个适合","挑哪个","怎么定","定不下来","选谁","怎么拿主意","哪个更合适","选哪条","左右为难","举棋不定","合适吗","合不合适","好不好","要不要买"],"pool":["没有调查，没有发言权。","马克思主义的最本质的东西，马克思主义的活的灵魂，就在于具体地分析具体的情况。","捉住了这个主要矛盾，一切问题就迎刃而解了。","不同质的矛盾，只有用不同质的方法才能解决。","任何过程如果有多数矛盾存在的话，其中必定有一种是主要的。","去粗取精，去伪存真，由此及彼，由表及里。","看菜吃饭，量体裁衣。","到什么山上唱什么歌。","没有全局在胸，是不会真的投下一着好棋子的。","调查就像“十月怀胎”，解决问题就像“一朝分娩”。","世界上没有直路，要准备走曲折的路。","弹钢琴要十个指头都动作，不能有的动，有的不动。","事情有大道理，有小道理，一切小道理都归大道理管着。"]},{"id":"succeed","name":"成不成","desc":"这事能不能成","keys":["能成吗","有戏吗","会成功吗","行不行","靠谱吗","能不能成","能成功","有希望吗","做得到吗","成得了吗","有搞头吗","有没有搞头","能行吗","做得了吗","能实现吗","达得到吗","有胜算吗","赢面大吗","会成吗","能不能做成","有把握吗","希望大吗","有前途吗","能过吗","能不能过","过得了吗","会过吗","能通过吗","过不过","能上岸吗","上岸吗","面试能成","有没有希望","能不能上岸","能上岸","没回音","有回音","没反应","没结果","有机会吗","还有机会吗","能干吗","干得了吗","石沉大海","没戏","有戏"],"pool":["星星之火，可以燎原。","前途是光明的，道路是曲折的。","往往有这种情形，有利的情况和主动的恢复，产生于“再坚持一下”的努力之中。","我们一定要坚持下去，一定要不断地工作，我们也会感动上帝的。","世界上没有直路，要准备走曲折的路。","东方不亮西方亮，黑了南方有北方。","世上无难事，只怕有心人。","一个人能力有大小，但只要有这点精神，就是一个高尚的人。","武器是战争的重要的因素，但不是决定的因素，决定的因素是人不是物。","外因是变化的条件，内因是变化的根据。","没有文化的军队是愚蠢的军队，而愚蠢的军队是不能战胜敌人的。","我们的同志在困难的时候，要看到成绩，要看到光明，要提高我们的勇气。","一切真知都是从直接经验发源的。"]},{"id":"endure","name":"扛不扛得住","desc":"困难压力，想不想放弃","keys":["太难了","坚持不下去","想放弃","撑不住","熬不住","受不了","扛不住","好累","心累","压力大","压力太大","太累了","好难","坚持不住","崩溃","撑不下去","熬不过去","顶不住","累垮","卷不动","想躺平","想摆烂","扛不动","喘不过气","坚持好难","好苦","熬不下去","太难熬","心累","扛不住压力","不想活了"],"pool":["中国人死都不怕，还怕困难吗？","越是困难的地方越是要去。","我们的同志在困难的时候，要看到成绩，要看到光明，要提高我们的勇气。","下定决心，不怕牺牲，排除万难，去争取胜利。","我们一定要坚持下去，一定要不断地工作，我们也会感动上帝的。","往往有这种情形，有利的情况和主动的恢复，产生于“再坚持一下”的努力之中。","一切反动派都是纸老虎。","丢掉幻想，准备斗争。","世界上没有直路，要准备走曲折的路。","艰苦的工作就像担子，摆在我们的面前，看我们敢不敢承担。","要奋斗就会有牺牲。","我们是为着解决困难去工作、去斗争的。","我们要承认困难，分析困难，向困难作斗争。","中国人死都不怕，还怕困难吗？"]},{"id":"trust","name":"信还是防","desc":"这人靠不靠得住","keys":["信不信","靠得住吗","是真的吗","骗","借钱","值得信吗","真心吗","是不是骗","要不要信","可不可信","信得过吗","诚实吗","可靠吗","防不防","要不要借","该不该借","是不是真的","骗我","信他还是","信他","是不是忽悠","是不是套路","要不要相信","交不交心","靠不靠谱","能不能信"],"pool":["群众是真正的英雄，而我们自己则往往是幼稚可笑的。","世界上只有猫和猫做朋友的事，我没有猫和老鼠做朋友的事。","纸上的东西并不等于现实的东西。","去粗取精，去伪存真，由此及彼，由表及里。","感觉只解决现象问题，理论才解决本质问题。","我们看事情必须要看它的实质，而把它的现象只看作入门的向导。","三个臭皮匠，合成一个诸葛亮。","一切革命队伍的人都要互相关心，互相爱护，互相帮助。","我们共产党人好比种子，人民好比土地。","世上决没有无缘无故的爱，也没有无缘无故的恨。","世间一切事物中，人是第一个可宝贵的。","谅解、支援和友谊，比什么都重要。","从群众中来，到群众中去。","群众是真正的英雄。"]},{"id":"wrong","name":"错了怎么办","desc":"搞砸了，后悔了","keys":["搞砸了","后悔","失误","犯错","做错了","翻车","错了","失败","补救","还有救吗","怎么弥补","怎么挽回","后悔死了","搞糟了","办砸了","弄砸了","犯了错","出了错","吃了亏","被骗了","错过","来不及了吗","怎么改","要不要道歉","怎么弥补","还能补救吗","做错了事","很后悔"],"pool":["失败确是成功之母。","错误常常是正确的先导。","错误和挫折教训了我们，使我们比较地聪明起来了。","我们走过了许多弯路。但是错误常常是正确的先导。","惩前毖后，治病救人。","因为我们是为人民服务的，所以，我们如果有缺点，就不怕别人批评指出。","只要你说得对，我们就改正。","有无认真的自我批评，也是我们和其他政党互相区别的显著的标志之一。","房子是应该经常打扫的，不打扫就会积满了灰尘；脸是应该经常洗的，不洗也就会灰尘满面。","实践、认识、再实践、再认识，这种形式，循环往复以至无穷。","常常不是先学好了再干，而是干起来再学习，干就是学习。"]},{"id":"direction","name":"有没有路","desc":"迷茫，不知道方向","keys":["迷茫","不知道干嘛","没方向","人生方向","没头绪","怎么办","何去何从","不知道怎么办","路怎么走","不知道怎么走","不知道该干嘛","没目标","方向在哪","怎么开始","前路","看不到希望","没希望","走哪条路","下一步怎么办","该做什么","无所适从","不知所措","乱了","没思路","没有方向","不知道做什么","不知道以后","找不到","找不到工作","找不到方向","都没找到","没工作"],"pool":["没有调查，没有发言权。","星星之火，可以燎原。","前途是光明的，道路是曲折的。","认清中国的国情，乃是认清一切革命问题的基本的根据。","马克思主义者不是算命先生。","东方不亮西方亮，黑了南方有北方。","到群众中作实际调查去！","调查就是解决问题。","从群众中来，到群众中去。","我们共产党人好比种子，人民好比土地。"]},{"id":"procrastinate","name":"动不起来","desc":"拖延，迟迟不开始","keys":["拖延","懒","不想动","没动力","迟迟不动","明天再说","总想等","再等等","开始不了","动不了","拖","行动不起来","没劲","提不起劲","不想开始","迈不出第一步","拖拖拉拉","一拖再拖","不想做","没心情做","就是不想","下不了手","迟迟没开始","光想不做","拖延症","没有行动力"],"pool":["一切事情是要人做的。","抓而不紧，等于不抓。","扫帚不到，灰尘照例不会自己跑掉。","做一天和尚撞一天钟。","常常不是先学好了再干，而是干起来再学习，干就是学习。","你要知道梨子的滋味，你就得变革梨子，亲口吃一吃。","实践、认识、再实践、再认识，这种形式，循环往复以至无穷。","读书是学习，使用也是学习，而且是更重要的学习。","自己动手，克服困难。","下定决心，不怕牺牲，排除万难，去争取胜利。","不入虎穴，焉得虎子。","从战争学习战争——这是我们的主要方法。","对工作的极端的负责任，对同志对人民的极端的热忱。"]},{"id":"speak","name":"说还是不说","desc":"要不要开口表达","keys":["要不要说","说不说","怎么开口","表不表白","要不要表白","提不提","要不要告诉","要不要拒绝","要不要答应","怎么拒绝","怎么提","要不要坦白","说不出口","开不了口","要不要问","要不要提醒","要不要劝","要不要吵","要不要翻脸","要不要解释","要不要说破","要不要承认","要不要告状","该不该说","要不要沟通","怎么开口说","跟他说","跟领导说","跟对象说","跟爸妈说","跟父母说","要不要讲","该不该讲","要不要提意见"],"pool":["知无不言，言无不尽。","言者无罪，闻者足戒。","当面不说，背后乱说；开会不说，会后乱说。","把问题摆到桌面上来。","我们如果有缺点，就不怕别人批评指出。","只要你说得对，我们就改正。","一切革命队伍的人都要互相关心，互相爱护，互相帮助。","谅解、支援和友谊，比什么都重要。","对工作的极端的负责任，对同志对人民的极端的热忱。","事不关己，高高挂起；明知不对，少说为佳；明哲保身，但求无过。","空话连篇，言之无物。","装腔作势，借以吓人。","因为我们是为人民服务的，所以，我们如果有缺点，就不怕别人批评指出。"]},{"id":"timing","name":"早还是晚","desc":"时机到了没有","keys":["什么时候","现在该不该","早不早","晚不晚","等不等","时机","现在做","还是以后","先不先","急不急","赶不赶","来不来得及","来得及吗","现在开始","要不要等","等多久","是不是太早","是不是太晚","趁现在","现在出手","要不要现在","时机对吗","是不是时候","要不要拖","尽快吗","现在合适吗","该不该现在"],"pool":["凡事预则立，不预则废。","不打无准备之仗，不打无把握之仗。","开始准备的时机问题，一般地说来，与其失之过迟，不如失之过早。","向着最坏的一种可能性作准备。","敌进我退，敌驻我扰，敌疲我打，敌退我追。","一着不慎，满盘皆输。","睡眠和休息丧失了时间，却取得了明天工作的精力。","事情有大道理，有小道理，一切小道理都归大道理管着。","我们能够学会我们原来不懂的东西。","抓而不紧，等于不抓。"]}];
+const FIELDS = [{"id":"work","name":"工作","cat":"犹豫/决策","keys":["工作","辞职","跳槽","离职","老板","同事","加班","背锅","被裁","裁员","升职","换工作","转行","offer","上班","职场","领导","上司","失业","工资","上班族","项目","开除","开人","解雇","炒鱿鱼","劝退","面试","简历","投简历","应届","求职","应聘","入职"]},{"id":"startup","name":"创业","cat":"行动/拖延","keys":["创业","开店","合伙","加盟","副业","摆摊","做生意","开公司","买卖","投资","创业做"]},{"id":"love","name":"感情","cat":"人际/团结","keys":["分手","对象","前任","结婚","离婚","表白","恋爱","相亲","吵架","复合","暧昧","异地","男朋友","女朋友","老公","老婆","感情"]},{"id":"money","name":"钱财","cat":"困难/压力","keys":["欠","借","负债","理财","买房","还贷","存款","亏了","破产","借钱","还钱","缺钱","没钱","工资不够"]},{"id":"study","name":"学业","cat":"成长/学习","keys":["考试","考研","高考","论文","挂科","升学","复读","上岸","读书","考公","考证","学习","考试","毕业"]},{"id":"health","name":"健康","cat":"困难/压力","keys":["健身","减肥","熬夜","体检","生病","失眠","跑步","作息","身体","运动","健康","累"]},{"id":"social","name":"人际","cat":"人际/团结","keys":["朋友","排挤","小人","误会","社交","圈子","合群","孤立","背后说","人脉","应酬"]},{"id":"family","name":"家庭","cat":"人际/团结","keys":["父母","爸妈","家人","催婚","亲戚","回家","孝顺","爸妈催","家庭"]}];
+
+const $ = id => document.getElementById(id);
+const screens = {home:$("s-home"),answer:$("s-answer"),share:$("s-share"),cooperate:$("s-cooperate"),tip:$("s-tip")};
+let current = null;
+let audioCtx = null;
+
+/* ---------- 工具 ---------- */
+function todayStr(){
+  const d = new Date();
+  return `${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日`;
+}
+function toast(msg){
+  const t = $("toast"); t.textContent = msg; t.classList.add("show");
+  clearTimeout(t._h); t._h = setTimeout(()=>t.classList.remove("show"), 1800);
+}
+function beep(freq, dur, vol, when){
+  try{
+    audioCtx = audioCtx || new (window.AudioContext||window.webkitAudioContext)();
+    const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+    o.type = "triangle"; o.frequency.value = freq;
+    g.gain.setValueAtTime(vol, audioCtx.currentTime + (when||0));
+    g.gain.exponentialRampToValueAtTime(.0001, audioCtx.currentTime + (when||0) + dur);
+    o.connect(g); g.connect(audioCtx.destination);
+    o.start(audioCtx.currentTime + (when||0)); o.stop(audioCtx.currentTime + (when||0) + dur + .02);
+  }catch(e){}
+}
+// 品级由金句质量决定：A级顶级语录→上上品/上品，B级普通→中品（避免"上品配平淡句"）
+function pickLevel(q){
+  const f = q && q.famous;
+  if (f === "A") return Math.random() < .4 ? "上上品" : "上品";
+  return "中品";
+}
+function parseSource(src){
+  const m = src.match(/《毛泽东选集》第([一二三四五六七])卷 · ([^·]+?)· (\d{4})/);
+  if (!m) return {title: src, year: ""};
+  return {title: m[2].trim(), year: m[3] + "年"};
+}
+function showScreen(name){
+  Object.values(screens).forEach(s=>s.classList.add("hidden"));
+  screens[name].classList.remove("hidden");
+}
+
+
+// 话题关键词粗匹配（第二层兜底）
+
+/* ---------- 决策点匹配 ---------- */
+// 加权抽取：A 顶级语录优先
+function pickFrom(pool){
+  const a = pool.filter(x=>x.famous==="A");
+  const b = pool.filter(x=>x.famous==="B");
+  const roll = Math.random();
+  if (roll < 0.65 && a.length) return a[Math.floor(Math.random()*a.length)];
+  if (roll < 0.9 && b.length) return b[Math.floor(Math.random()*b.length)];
+  return pool[Math.floor(Math.random()*pool.length)];
+}
+function matchFields(text){
+  return FIELDS.filter(f=>f.keys.some(k=>text.includes(k))).map(f=>f.name);
+}
+function drawByQuestion(q){
+  const text = (q||"").replace(/\s/g,"");
+  if (!text) return null;
+  const hitFields = FIELDS.filter(f=>f.keys.some(k=>text.includes(k)));
+  const fields = hitFields.map(f=>f.name);
+  const cat = hitFields.length ? hitFields[0].cat : null;
+  // 第一层：决策点——命中词最长者优先（如"该不该借"优先于"该不该"）
+  let best = null;
+  for (const d of DECISIONS){
+    for (const k of d.keys){
+      if (text.includes(k) && (!best || k.length > best.keyLen)) best = {d, keyLen: k.length};
+    }
+  }
+  if (best){
+    let pool = best.d.pool.map(qt=>QUOTES.find(x=>x.q===qt)).filter(Boolean);
+    // 同时命中领域：优先抽同主题类别的句子，提高契合度
+    if (cat){
+      const cp = pool.filter(x=>x.c===cat);
+      if (cp.length) pool = cp;
+    }
+    if (pool.length) return {q: pickFrom(pool), matched: best.d.name, fields};
+  }
+  // 第二层：只有领域词（如只写"辞职"）→ 同类别经典语录 + 领域标注
+  if (fields.length){
+    const pool = cat ? QUOTES.filter(x=>x.c===cat) : QUOTES;
+    return {q: pickFrom(pool.length ? pool : QUOTES), matched: "", fields};
+  }
+  return null;
+}
+
+/* ---------- 匹配 → 一步揭晓 ---------- */
+let shaking = false;
+function shake(){
+  if (shaking) return; shaking = true;
+  $("btnShake").disabled = true;
+  // 翻书动画：书页翻动后揭晓金句
+  const book = $("book");
+  if (book){
+    book.classList.remove("flip");
+    void book.offsetWidth;
+    book.classList.add("flip");
+  }
+  beep(180,.05,.08); beep(150,.05,.08,.14); beep(120,.05,.08,.28);
+  setTimeout(()=>{
+    beep(520,.14,.2); beep(780,.1,.12,.08);
+    showAnswer();
+    $("btnShake").disabled = false;
+    shaking = false;
+  }, 1250);
+}
+function showAnswer(){
+  const question = $("qInput").value.trim() || "";
+  const hit = drawByQuestion(question);
+  current = hit ? hit.q : pickFrom(QUOTES);
+  current.question = question;
+  current.matched = hit ? hit.matched : "";
+  current.fields = (hit && hit.fields) ? hit.fields : [];
+  // 决策点命中：白话/宜忌用金句自带的（决策池内的句子自带解释）
+
+  current.level = pickLevel(current.q);
+  $("aLevel").textContent = current.level;
+  const echo = $("aEcho");
+  if (current.question){
+    // 匹配透明化：决策点→应你之问+领域标注；未命中→随缘句
+    let tag = current.matched ? `应你「${current.matched}」之问` : "此句·随缘";
+    if (current.fields.length) tag += ` · ${current.fields.join(" / ")}`;
+    echo.innerHTML = `<span class="tag">${tag}</span>${current.question}`;
+    echo.classList.remove("hidden");
+  } else { echo.classList.add("hidden"); }
+  $("aQuote").textContent = current.q;
+  // 字号自适应：短句大字不空，长句维持默认
+  const qlen = [...current.q].length;
+  const aq = $("aQuote");
+  const m = innerWidth <= 767;
+  if (qlen <= 10) aq.style.fontSize = m ? "46px" : "60px";
+  else if (qlen <= 18) aq.style.fontSize = m ? "38px" : "50px";
+  else aq.style.fontSize = "";
+  $("aTrans").textContent = current.t || "（白话未生成）";
+  $("aYi").textContent = current.yi;
+  $("aJi").textContent = current.ji;
+  $("answerMore").classList.remove("open");
+  $("moreToggle").classList.remove("open");
+  $("mtLabel").textContent = "白话与解读";
+  refreshSaveBtns();
+  showScreen("answer");
+  // 翻书动画：金句页像翻书一样展开
+  const ai = $("answerInner");
+  ai.classList.remove("book-open");
+  void ai.offsetWidth;
+  ai.classList.add("book-open");
+}
+$("moreToggle").addEventListener("click", ()=>{
+  const m = $("answerMore");
+  m.classList.toggle("open");
+  $("moreToggle").classList.toggle("open");
+  $("mtLabel").textContent = m.classList.contains("open") ? "收起" : "白话与解读";
+});
+
+/* ---------- 分享卡（竖排海报版） ---------- */
+function shareText(){
+  const q = current.question ? `我向「难题有解」问了「${current.question}」，` : "我在「难题有解」配了一句，";
+  return `${q}抽到这句：${current.q} 你最近在纠结什么？也来配一句`;
+}
+async function drawShare(q){
+  const W = 1080, H = 1920;
+  const cv = document.createElement("canvas");
+  cv.width = W; cv.height = H;
+  const ctx = cv.getContext("2d");
+  const SERIF = '"QKai","Kaiti SC","STKaiti","KaiTi","Noto Serif SC","Noto Serif CJK SC","Songti SC","SimSun",serif';
+  const SANS = '"PingFang SC","Microsoft YaHei",sans-serif';
+  const F = (s,w="")=>`${w} ${s}px ${SERIF}`.trim();
+  const FN = (s,w="")=>`${w} ${s}px ${SANS}`.trim();
+  const PUNCT = /[,，。！？；：、]/;
+
+  // 教员线稿水印（分享图主视觉背景，预加载；失败不阻塞）
+  let wmImg = null;
+  try{
+    const im = new Image();
+    im.src = "https://zenith0097.github.io/nantiyoujie/images/maestro-wm.webp";
+    await im.decode();
+    wmImg = im;
+  }catch(e){ wmImg = null; }
+
+  // 底色（暖宣纸）
+  const g = ctx.createLinearGradient(0,0,0,H);
+  g.addColorStop(0,"#faf5ea"); g.addColorStop(1,"#f1ead9");
+  ctx.fillStyle = g; ctx.fillRect(0,0,W,H);
+  // 淡噪点
+  for (let i=0;i<1400;i++){
+    ctx.fillStyle = `rgba(43,39,32,${Math.random()*.022})`;
+    ctx.fillRect(Math.random()*W, Math.random()*H, 2, 2);
+  }
+  // 主视觉区背景：教员线稿水印（淡墨，签文浮在上层）
+  if (wmImg){
+    ctx.save();
+    const wmw = 500, wmh = Math.round(wmw * 1029 / 800);
+    ctx.drawImage(wmImg, W/2 - wmw/2, 752 - wmh/2, wmw, wmh);
+    ctx.restore();
+  } else {
+    // 兜底：极淡"句"字
+    ctx.save();
+    ctx.globalAlpha = .04; ctx.fillStyle = "#2b2720";
+    ctx.font = `700 900px ${SERIF}`; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+    ctx.fillText("句", W/2, 752);
+    ctx.restore();
+  }
+
+  // 上下朱红线（请柬式）
+  ctx.fillStyle = "#c8443a";
+  ctx.fillRect(0, 0, W, 12);
+  ctx.fillRect(0, H-12, W, 12);
+  ctx.strokeStyle = "rgba(200,68,58,.35)"; ctx.lineWidth = 1.5;
+  ctx.strokeRect(46, 46, W-92, H-92);
+
+  ctx.textAlign = "center"; ctx.textBaseline = "alphabetic";
+
+  // ===== 顶部区（固定锚点） =====
+  ctx.fillStyle = "#2b2720"; ctx.font = FN(64,"600");
+  ctx.fillText("难题有解", W/2, 150);
+  ctx.fillStyle = "#c8443a"; ctx.fillRect(W/2-34, 180, 68, 4);
+  ctx.fillStyle = "#91897b"; ctx.font = FN(34);
+  ctx.fillText("今日金句 · " + todayStr(), W/2, 236);
+  if (q.question){
+    ctx.fillStyle = "#c8443a";
+    let qsize = 40; ctx.font = F(qsize);
+    let qlines = wrapText(ctx, "问：" + q.question, W - 220);
+    while (qlines.length > 2 && qsize > 30){ qsize -= 2; ctx.font = F(qsize); qlines = wrapText(ctx, "问："+q.question, W-220); }
+    const qlh = qsize * 1.45;
+    const qy0 = (qlines.length > 1 ? 312 : 334) - (qlines.length-1)*qlh/2 + qsize*0.8;
+    qlines.forEach((ln,i)=>ctx.fillText(ln, W/2, qy0 + i*qlh));
+  }
+
+  // ===== 主视觉区：y 412-1092 固定（680 高），垂直居中 =====
+  const MAIN_TOP = 412, MAIN_H = 680, MAIN_CX = W/2, MAIN_CY = MAIN_TOP + MAIN_H/2;
+  const chars = [...q.q];
+  const level = q.level || "上品";
+  let vw = 0, vh = 0; // 视觉块尺寸（红章定位用）
+
+  if (chars.length <= 12){
+    // ---- 短句：大字横排（2行内），逐字排开 ----
+    let size = 148;
+    ctx.font = F(size,"700");
+    let lines = wrapText(ctx, q.q, 830);
+    while ((lines.length > 2 || lines.some(l=>[...l].filter(c=>!PUNCT.test(c)).length > 7)) && size > 96){
+      size -= 8; ctx.font = F(size,"700"); lines = wrapText(ctx, q.q, 830);
+    }
+    const lh = size * 1.5;
+    const totalH = lines.length * lh;
+    let ty = MAIN_CY - totalH/2 + size * 0.82;
+    ctx.fillStyle = "#2b2720";
+    for (const ln of lines){
+      const u = [...ln].map(c=>PUNCT.test(c)?0.5:1);
+      const units = u.reduce((a,b)=>a+b,0);
+      const unit = Math.min(size*1.12, 830/units);
+      const tw = units * unit;
+      let x = MAIN_CX - tw/2 + unit/2;
+      [...ln].forEach((ch,i)=>{
+        if (PUNCT.test(ch)){ ctx.font = F(Math.round(size*0.75),"700"); }
+        else ctx.font = F(size,"700");
+        ctx.fillText(ch, x, ty);
+        x += u[i] * unit;
+      });
+      ty += lh;
+    }
+    vw = lines.reduce((m,l)=>Math.max(m,[...l].length*size), 200);
+    vh = totalH;
+  } else {
+    // ---- 长句：竖排（右起） ----
+    const perCol = 5;
+    const cols = [];
+    for (let i=0;i<chars.length;i+=perCol) cols.push(chars.slice(i,i+perCol));
+    const maxColLen = Math.max(...cols.map(c=>c.length));
+    let size = 92;
+    size = Math.min(size, 780 / (cols.length * 1.18));
+    size = Math.min(size, MAIN_H - 140 > 0 ? (MAIN_H-140) / (maxColLen * 1.42) : size);
+    size = Math.max(size, 56);
+    const colW = size * 1.18, lineH = size * 1.42;
+    const totalW = cols.length * colW;
+    const totalH = maxColLen * lineH;
+    const startX = MAIN_CX + totalW/2 - colW;
+    const startY = MAIN_CY - totalH/2 + size*0.8;
+    ctx.font = F(size,"700");
+    ctx.fillStyle = "#2b2720";
+    cols.forEach((col, ci)=>{
+      const x = startX - ci * colW;
+      col.forEach((ch, ri)=>ctx.fillText(ch, x, startY + ri * lineH));
+    });
+    vw = totalW; vh = totalH;
+  }
+
+  // 品级红章（主视觉右上角）
+  ctx.save();
+  ctx.translate(MAIN_CX + vw/2 + 52, MAIN_CY - vh/2 - 6);
+  ctx.rotate(-0.07);
+  ctx.strokeStyle = "#c8443a"; ctx.lineWidth = 3;
+  ctx.strokeRect(-26, -56, 52, 64);
+  ctx.fillStyle = "#c8443a";
+  ctx.fillRect(-22, -52, 44, 56);
+  ctx.fillStyle = "#faf5ea"; ctx.font = `600 20px ${SERIF}`;
+  [...level].forEach((ch,i)=>ctx.fillText(ch, 0, -28 + i*25));
+  ctx.restore();
+
+  // ===== 解读区（固定锚点）：白话 1190 + 宜忌 1440 =====
+  ctx.fillStyle = "#4a453d"; ctx.font = F(32);
+  let tl = wrapText(ctx, q.t || "", W-280);
+  if (tl.length > 2){ ctx.font = F(28); tl = wrapText(ctx, q.t||"", W-280); }
+  let ty2 = 1190;
+  for (const ln of tl){ ctx.fillText(ln, W/2, ty2); ty2 += (tl.length>2?48:56); }
+
+  const sealY = 1440;
+  const sealR = 92;
+  [ [W/2-118,"该做的",q.yi,true], [W/2+118,"先别急的",q.ji,false] ].forEach(([sx,tag,txt,solid])=>{
+    ctx.save(); ctx.translate(sx, sealY); ctx.rotate(solid?-0.05:0.04);
+    ctx.beginPath(); ctx.arc(0,0,sealR,0,Math.PI*2);
+    if (solid){ ctx.fillStyle="#c8443a"; ctx.fill(); }
+    else { ctx.strokeStyle="#c8443a"; ctx.lineWidth=4; ctx.stroke(); }
+    ctx.textAlign="center";
+    ctx.font = F(tag.length > 2 ? 26 : 44,"700"); ctx.fillStyle = solid?"#faf5ea":"#c8443a";
+    ctx.fillText(tag, 0, -16);
+    ctx.font = F(26); ctx.fillText(txt, 0, 34);
+    ctx.restore();
+  });
+
+  // ===== 底部区（固定锚点） =====
+  const footY = 1662;
+  ctx.fillStyle = "#2b2720"; ctx.font = F(36);
+  ctx.fillText("用教员的思想，指导当下的难题", W/2, footY);
+  ctx.strokeStyle = "rgba(43,39,32,.12)"; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(90, footY + 44); ctx.lineTo(W-90, footY + 44); ctx.stroke();
+
+  const qr = 148, qx = W/2 - qr - 24, qy = 1734;
+  // 真二维码：白底框 + 二维码模块
+  ctx.fillStyle = "#fff"; ctx.fillRect(qx - 8, qy - 8, qr + 16, qr + 16);
+  try{
+    const q = qrcode(0, "M");
+    q.addData(DEPLOY_URL);
+    q.make();
+    const n = q.getModuleCount();
+    const cell = qr / n;
+    ctx.fillStyle = "#2b2720";
+    for (let r=0;r<n;r++) for (let c=0;c<n;c++){
+      if (q.isDark(r,c)) ctx.fillRect(
+        Math.round(qx + c*cell), Math.round(qy + r*cell),
+        Math.ceil((c+1)*cell) - Math.round(c*cell),
+        Math.ceil((r+1)*cell) - Math.round(r*cell));
+    }
+  }catch(e){
+    // 兜底：二维码生成失败时画占位块
+    ctx.fillStyle = "#2b2720"; ctx.fillRect(qx, qy, qr, qr);
+  }
+  ctx.textAlign = "left";
+  ctx.fillStyle = "#c8443a"; ctx.font = F(36);
+  ctx.fillText("扫码匹配金句", qx + qr + 44, qy + 60);
+  ctx.fillStyle = "#2b2720"; ctx.font = F(30);
+  ctx.fillText("Zenith AI 研学社", qx + qr + 44, qy + 110);
+  ctx.fillStyle = "#91897b"; ctx.font = F(20);
+  ctx.fillText("抖音 · 公众号同名", qx + qr + 44, qy + 142);
+  ctx.textAlign = "center";
+  return cv;
+}
+function wrapText(ctx, text, maxW){
+  const chars = [...text]; const lines = []; let cur = "";
+  for (const ch of chars){
+    const test = cur + ch;
+    if (ctx.measureText(test).width > maxW && cur){ lines.push(cur); cur = ch; }
+    else cur = test;
+  }
+  if (cur) lines.push(cur);
+  return lines;
+}
+
+/* ---------- 事件 ---------- */
+$("btnShake").addEventListener("click", shake);
+// 预制问题：20 个常用问题池，随机抽 6 个展示，点一下填入并直接摇
+const PRESET_POOL = [
+  "这份工作该不该辞","这段感情要不要继续","该不该跳槽去新公司",
+  "两个机会选哪个","三个offer选哪个",
+  "面试能不能过","这个项目能成吗","追的人有戏吗",
+  "最近太难了想放弃","快撑不住了怎么办",
+  "该不该借钱给朋友","合伙的人靠谱吗",
+  "做错了事怎么补救","搞砸了还有救吗",
+  "不知道以后该干嘛","不知道路怎么走",
+  "一直拖延动不起来","该不该说出真实想法",
+  "现在买房合适吗","现在该不该辞职创业"
+];
+function shuffle(arr){ const a=[...arr]; for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+function renderPresets(){
+  const six = shuffle(PRESET_POOL).slice(0,6);
+  $("presetChips").innerHTML = six.map(q=>`<button class="chip" data-q="${q}">${q}</button>`).join("");
+}
+// 初始 chips 已在 HTML 静态预渲染（秒出，不依赖 JS）；点"换一批"才重新渲染
+$("presetChips").addEventListener("click", e=>{
+  const c = e.target.closest(".chip");
+  if (c){ $("qInput").value = c.dataset.q; shake(); }
+});
+$("btnRefresh").addEventListener("click", renderPresets);
+$("btnAgain").addEventListener("click", ()=>{ showScreen("home"); });
+$("btnAgain2").addEventListener("click", ()=>{ showScreen("home"); });
+
+/* ---------- 合作联系 & 打赏 ---------- */
+// 二维码用真实图片 URL（微信长按才能识别图中二维码；base64 内嵌图只会弹"保存图片"）
+const COOP_IMG = "https://zenith0097.github.io/nantiyoujie/images/cooperate.png?v=44";
+const TIP_IMG = "https://zenith0097.github.io/nantiyoujie/images/tip.png?v=44";
+(function(){
+  function bindImg(imgId, qrId, url){
+    const img = $(imgId), qr = $(qrId);
+    if (url && url.startsWith("http")){
+      img.src = url;
+    } else {
+      qr.classList.add("empty");
+      img.removeAttribute("src");
+    }
+  }
+  bindImg("coopImg","coopQr",COOP_IMG);
+  bindImg("tipImg","tipQr",TIP_IMG);
+  $("btnCoop").addEventListener("click", ()=> showScreen("cooperate"));
+  $("btnCoopBack").addEventListener("click", ()=> showScreen("home"));
+  $("btnTip").addEventListener("click", ()=> showScreen("tip"));
+  $("btnTipBack").addEventListener("click", ()=> showScreen("home"));
+  $("btnCoopS").addEventListener("click", ()=> showScreen("cooperate"));
+  $("btnTipS").addEventListener("click", ()=> showScreen("tip"));
+})();
+
+/* ===== 意见反馈 + 许愿池（飞书多维表格表单）===== */
+// 反馈/许愿 → 打开飞书表单（预填类型），提交自动进过路的飞书多维表格
+const FB_FORM_URL = "https://acnuso1tl1wr.feishu.cn/share/base/shrcnsPZMJBLbT1hUdmOqgTslSe";
+function openFbForm(type){
+  toast("正在打开填写页面…");
+  const url = FB_FORM_URL + "?prefill_" + encodeURIComponent("类型") + "=" + encodeURIComponent(type);
+  const w = window.open(url, "_blank");
+  if (!w) location.href = url; // 弹窗被拦时直接跳转
+}
+$("btnFb").addEventListener("click", ()=> openFbForm("意见反馈"));
+$("btnFbS").addEventListener("click", ()=> openFbForm("意见反馈"));
+$("btnWish").addEventListener("click", ()=> openFbForm("许愿池"));
+$("btnWishS").addEventListener("click", ()=> openFbForm("许愿池"));
+/* 反馈/许愿统计见飞书表格 */
+$("btnShare").addEventListener("click", async ()=>{
+  // 确保楷体 web 字体已加载（否则 canvas 用系统字体回退，安卓会显示黑体）
+  try{ if (document.fonts && document.fonts.load) await document.fonts.load('700 100px "QKai"'); }catch(e){}
+  const cv = await drawShare(current);
+  $("shareImg").src = cv.toDataURL("image/png");
+  window._shareCanvas = cv;
+  refreshSaveBtns();
+  showScreen("share");
+});
+// 页面加载即预载楷体，金句/收藏等元素稳定渲染楷体
+(function(){
+  try{
+    if (document.fonts && document.fonts.load){
+      document.fonts.load('16px "QKai"').catch(()=>{});
+      document.fonts.load('700 16px "QKai"').catch(()=>{});
+    }
+  }catch(e){}
+})();
+const IS_TOUCH = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || ("ontouchstart" in window);
+$("btnDownload").addEventListener("click", ()=>{
+  if (!window._shareCanvas) return;
+  if (IS_TOUCH){
+    // 手机浏览器不支持 a.download → 引导长按卡片图片，系统原生保存
+    toast("长按上方卡片图片，选「保存图片」");
+  } else {
+    const a = document.createElement("a");
+    a.href = window._shareCanvas.toDataURL("image/png");
+    a.download = "金句卡.png";
+    a.click();
+    toast("金句卡已保存");
+  }
+});
+(function(){
+  const t = $("saveTip");
+  if (IS_TOUCH){ t.textContent = "💡 长按上方卡片图片，即可保存到相册"; }
+})();
+$("btnCopy").addEventListener("click", ()=>{
+  const txt = shareText();
+  // file:// 下剪贴板 API 被禁用 → 先试新 API，失败走老式选中复制
+  let done = false;
+  if (navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(txt).then(()=>{ done = true; toast("金句已复制，去发朋友圈吧"); }).catch(()=>fallbackCopy(txt));
+  } else { fallbackCopy(txt); }
+  function fallbackCopy(t){
+    try{
+      const ta = document.createElement("textarea");
+      ta.value = t;
+      ta.style.position = "fixed"; ta.style.left = "-9999px"; ta.style.top = "0";
+      ta.setAttribute("readonly", "");
+      document.body.appendChild(ta);
+      ta.select();
+      const ok = document.execCommand("copy");
+      document.body.removeChild(ta);
+      toast(ok ? "金句已复制，去发朋友圈吧" : "复制失败，请长按金句手动复制");
+    }catch(e){ toast("复制失败，请长按金句手动复制"); }
+  }
+});
+
+/* 收藏 */
+function loadBook(){ try{ return JSON.parse(localStorage.getItem("shishenqiu_book")||"[]"); }catch(e){ return []; } }
+function saveBook(b){ localStorage.setItem("shishenqiu_book", JSON.stringify(b)); }
+function renderBook(){
+  const list = $("bookList"), b = loadBook();
+  if (!b.length){ list.innerHTML = '<p class="panel-empty">还没有收藏的句子，去配一句吧</p>'; return; }
+  list.innerHTML = b.map((x,i)=>`<div class="book-item"><div class="q">${x.q}<span class="src">${x.s}</span></div><button class="del" data-i="${i}">×</button></div>`).join("");
+  list.querySelectorAll(".del").forEach(btn=>btn.addEventListener("click",()=>{
+    const nb = loadBook(); nb.splice(+btn.dataset.i,1); saveBook(nb); renderBook(); toast("已移出收藏");
+  }));
+}
+function saveCurrent(){
+  const b = loadBook();
+  if (b.some(x=>x.q===current.q)){ toast("这条已在收藏里"); return; }
+  b.push({q:current.q, s:current.s});
+  saveBook(b); toast("已收藏");
+  // 收藏状态反馈：两个入口按钮都置灰提示
+  ["btnSave","btnSave2"].forEach(id=>{ const el = $(id); if (el){ el.textContent = "已收藏 ✓"; el.disabled = true; } });
+}
+function refreshSaveBtns(){
+  const inBook = loadBook().some(x=>x.q===current.q);
+  ["btnSave","btnSave2"].forEach(id=>{ const el = $(id); if (el){ el.textContent = inBook ? "已收藏 ✓" : "收藏此句"; el.disabled = inBook; } });
+}
+$("btnSave").addEventListener("click", saveCurrent);
+$("btnSave2").addEventListener("click", saveCurrent);
+// 配新句后刷新收藏按钮状态（在新句渲染后调用）
+function afterDraw(){ if (current) refreshSaveBtns(); }
+$("btnBook").addEventListener("click", ()=>{ renderBook(); $("bookPanel").classList.remove("hidden"); });
+$("btnBookClose").addEventListener("click", ()=>$("bookPanel").classList.add("hidden"));
+$("bookPanel").addEventListener("click", e=>{ if (e.target===$("bookPanel")) $("bookPanel").classList.add("hidden"); });
+
+/* 键盘 */
+document.addEventListener("keydown", e=>{
+  const editing = e.target && (e.target.tagName==="INPUT" || e.target.tagName==="TEXTAREA");
+  // 空格匹配：只在非输入状态触发，输入法组合中（选词/上屏）绝不触发
+  if (e.code==="Space" && !editing && !e.isComposing && !$("s-home").classList.contains("hidden")){ e.preventDefault(); shake(); }
+  if (e.key==="Escape") $("bookPanel").classList.add("hidden");
+});
+// 输入框内回车=匹配（输入法选词回车不触发）
+$("qInput").addEventListener("keydown", e=>{
+  if (e.key==="Enter" && !e.isComposing && $("qInput").value.trim()){ shake(); }
+});
+</script>
+</body>
+</html>
