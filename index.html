@@ -47,12 +47,12 @@ body{
 
 /* ===== 金句筒（翻开的书：左右页 + 右页绕书脊翻页）===== */
 .book-wrap{position:relative;width:150px;height:150px;display:flex;align-items:flex-end;justify-content:center;margin:2px 0}
-.book{position:relative;width:132px;height:118px;perspective:800px}
+.book{position:relative;width:132px;height:118px}
 .bk-spine{position:absolute;left:50%;top:5%;height:90%;width:2px;margin-left:-1px;background:#cbbfa4;z-index:0}
 .bk-left{position:absolute;left:0;top:0;width:50%;height:100%;z-index:1}
 .bk-left svg{width:100%;height:100%}
 .bk-right{position:absolute;left:50%;top:0;width:50%;height:100%;transform-origin:left center;
-  backface-visibility:hidden;box-shadow:-2px 0 4px rgba(43,39,32,.08)}
+  box-shadow:-2px 0 4px rgba(43,39,32,.08)}
 .bk-right svg{width:100%;height:100%}
 .bk-right.r1{z-index:4}
 .bk-right.r2{z-index:3}
@@ -62,9 +62,9 @@ body{
 .book.flip .r2{animation-delay:.2s}
 .book.flip .r3{animation-delay:.4s}
 @keyframes pageTurn{
-  0%{transform:translateX(0) scaleX(1);opacity:1}
-  55%{transform:translateX(-30%) scaleX(.42);opacity:.95}
-  100%{transform:translateX(-52%) scaleX(.06);opacity:0}
+  0%{transform:scaleX(1);opacity:1}
+  55%{transform:scaleX(.42);opacity:.95}
+  100%{transform:scaleX(.05);opacity:0}
 }
 
 /* ===== 输入区 ===== */
@@ -173,9 +173,9 @@ body{
 }
 .answer-inner.book-open{animation:bookOpen .78s cubic-bezier(.22,.85,.3,1) both}
 @keyframes bookOpen{
-  0%{transform:perspective(1100px) rotateY(-78deg) translateX(-38px);opacity:.12}
-  60%{transform:perspective(1100px) rotateY(9deg) translateX(0);opacity:1}
-  100%{transform:perspective(1100px) rotateY(0deg)}
+  0%{transform:translateX(-46px) scaleX(.18);opacity:.1}
+  55%{transform:translateX(-5px) scaleX(.97);opacity:1}
+  100%{transform:translateX(0) scaleX(1);opacity:1}
 }
 .answer-inner>*{position:relative;flex-shrink:0}
 /* 背景水印"句"字（填补短句空白，弱存在感） */
