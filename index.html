@@ -45,26 +45,28 @@ body{
 .brand-hook{font-size:15px;color:var(--seal-deep);letter-spacing:3px;text-indent:3px;font-weight:600}
 .brand-sub{font-size:12px;color:var(--ink-soft);letter-spacing:1.5px;line-height:1.6;text-align:center;margin-top:2px}
 
-/* ===== 金句筒（翻开的书：左右页 + 右页绕书脊翻页）===== */
+/* ===== 金句筒（翻开的书：左右页 + 右页绕书脊 3D 真翻页）===== */
 .book-wrap{position:relative;width:150px;height:150px;display:flex;align-items:flex-end;justify-content:center;margin:2px 0}
-.book{position:relative;width:132px;height:118px}
+.book{position:relative;width:132px;height:118px;perspective:900px}
 .bk-spine{position:absolute;left:50%;top:5%;height:90%;width:2px;margin-left:-1px;background:#cbbfa4;z-index:0}
-.bk-left{position:absolute;left:0;top:0;width:50%;height:100%;z-index:1}
+.bk-left{position:absolute;left:0;top:0;width:50%;height:100%;z-index:1;transform:translateZ(2px)}
 .bk-left svg{width:100%;height:100%}
 .bk-right{position:absolute;left:50%;top:0;width:50%;height:100%;transform-origin:left center;
-  box-shadow:-2px 0 4px rgba(43,39,32,.08)}
-.bk-right svg{width:100%;height:100%}
+  transform-style:preserve-3d}
+.bk-right .face,.bk-right .back{position:absolute;inset:0;width:100%;height:100%;backface-visibility:hidden}
+.bk-right .back{transform:rotateY(180deg)}
 .bk-right.r1{z-index:4}
 .bk-right.r2{z-index:3}
 .bk-right.r3{z-index:2}
-.book.flip .bk-right{animation:pageTurn .5s ease-in forwards}
+.book.flip .bk-right{animation:pageTurn .55s cubic-bezier(.45,.05,.35,1) forwards}
 .book.flip .r1{animation-delay:0s}
-.book.flip .r2{animation-delay:.2s}
-.book.flip .r3{animation-delay:.4s}
+.book.flip .r2{animation-delay:.22s}
+.book.flip .r3{animation-delay:.44s}
 @keyframes pageTurn{
-  0%{transform:scaleX(1);opacity:1}
-  55%{transform:scaleX(.42);opacity:.95}
-  100%{transform:scaleX(.05);opacity:0}
+  0%{transform:rotateY(0);z-index:4}
+  40%{transform:rotateY(-180deg);z-index:4}
+  42%{z-index:0}
+  100%{transform:rotateY(-180deg);z-index:0}
 }
 
 /* ===== 输入区 ===== */
@@ -161,6 +163,8 @@ body{
   opacity:1;
 }
 .wm-bg>*{position:relative;z-index:1}
+/* 答案页侧翻展开期间：水印先隐藏，避免展开时从页面底下露出 */
+.wm-bg.hidewm::before{opacity:0;transition:opacity .12s}
 /* 收藏按钮保持固定在右上角（不受水印层规则影响） */
 .wm-bg .book-link{position:fixed;top:14px;right:18px;z-index:12}
 #s-answer>.answer-inner{position:relative;z-index:1}
@@ -171,11 +175,11 @@ body{
   animation:rise .5s ease both;
   transform-origin:left center;
 }
-.answer-inner.book-open{animation:bookOpen .78s cubic-bezier(.22,.85,.3,1) both}
+.answer-inner.book-open{animation:bookOpen .7s cubic-bezier(.22,.85,.3,1) both}
 @keyframes bookOpen{
-  0%{transform:translateX(-46px) scaleX(.18);opacity:.1}
-  55%{transform:translateX(-5px) scaleX(.97);opacity:1}
-  100%{transform:translateX(0) scaleX(1);opacity:1}
+  0%{transform:perspective(1100px) rotateY(-72deg) translateX(-30px);opacity:.08}
+  60%{transform:perspective(1100px) rotateY(7deg) translateX(0);opacity:1}
+  100%{transform:perspective(1100px) rotateY(0)}
 }
 .answer-inner>*{position:relative;flex-shrink:0}
 /* 背景水印"句"字（填补短句空白，弱存在感） */
@@ -361,27 +365,36 @@ body{
         </div>
         <!-- 右页 ×3（翻页时依次绕书脊翻过，翻的就是这本书的页） -->
         <div class="bk-right r1" aria-hidden="true">
-          <svg viewBox="0 0 70 120">
+          <svg class="face" viewBox="0 0 70 120">
             <path d="M0 22 Q16 12 40 16 L40 96 Q16 92 0 102 Z" fill="#f6efdd" stroke="#b5a68a" stroke-width="2.5" stroke-linejoin="round"/>
             <line x1="9" y1="40" x2="32" y2="35" stroke="#c9bda2" stroke-width="2" stroke-linecap="round"/>
             <line x1="9" y1="52" x2="32" y2="47" stroke="#c9bda2" stroke-width="2" stroke-linecap="round"/>
             <line x1="9" y1="64" x2="32" y2="59" stroke="#c9bda2" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+          <svg class="back" viewBox="0 0 70 120">
+            <path d="M0 22 Q16 12 40 16 L40 96 Q16 92 0 102 Z" fill="#f2ead6"/>
           </svg>
         </div>
         <div class="bk-right r2" aria-hidden="true">
-          <svg viewBox="0 0 70 120">
+          <svg class="face" viewBox="0 0 70 120">
             <path d="M0 22 Q16 12 40 16 L40 96 Q16 92 0 102 Z" fill="#f6efdd" stroke="#b5a68a" stroke-width="2.5" stroke-linejoin="round"/>
             <line x1="9" y1="40" x2="32" y2="35" stroke="#c9bda2" stroke-width="2" stroke-linecap="round"/>
             <line x1="9" y1="52" x2="32" y2="47" stroke="#c9bda2" stroke-width="2" stroke-linecap="round"/>
             <line x1="9" y1="64" x2="32" y2="59" stroke="#c9bda2" stroke-width="2" stroke-linecap="round"/>
           </svg>
+          <svg class="back" viewBox="0 0 70 120">
+            <path d="M0 22 Q16 12 40 16 L40 96 Q16 92 0 102 Z" fill="#f2ead6"/>
+          </svg>
         </div>
         <div class="bk-right r3" aria-hidden="true">
-          <svg viewBox="0 0 70 120">
+          <svg class="face" viewBox="0 0 70 120">
             <path d="M0 22 Q16 12 40 16 L40 96 Q16 92 0 102 Z" fill="#f6efdd" stroke="#b5a68a" stroke-width="2.5" stroke-linejoin="round"/>
             <line x1="9" y1="40" x2="32" y2="35" stroke="#c9bda2" stroke-width="2" stroke-linecap="round"/>
             <line x1="9" y1="52" x2="32" y2="47" stroke="#c9bda2" stroke-width="2" stroke-linecap="round"/>
             <line x1="9" y1="64" x2="32" y2="59" stroke="#c9bda2" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+          <svg class="back" viewBox="0 0 70 120">
+            <path d="M0 22 Q16 12 40 16 L40 96 Q16 92 0 102 Z" fill="#f2ead6"/>
           </svg>
         </div>
       </div>
@@ -675,11 +688,17 @@ function showAnswer(){
   $("mtLabel").textContent = "白话与解读";
   refreshSaveBtns();
   showScreen("answer");
-  // 翻书动画：金句页像翻书一样展开
+  // 翻书动画：金句页像翻书一样展开（3D 侧翻；入场期间隐藏背景水印防露出）
   const ai = $("answerInner");
   ai.classList.remove("book-open");
   void ai.offsetWidth;
   ai.classList.add("book-open");
+  const sa = $("s-answer");
+  if (sa && sa.classList.contains("wm-bg")){
+    sa.classList.add("hidewm");
+    clearTimeout(window.__hidewmT);
+    window.__hidewmT = setTimeout(()=>sa.classList.remove("hidewm"), 820);
+  }
 }
 $("moreToggle").addEventListener("click", ()=>{
   const m = $("answerMore");
